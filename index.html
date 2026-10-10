@@ -1,0 +1,1640 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>督导移动端 · 工作台</title>
+<style>
+  :root{
+    --primary:#5B6CFF; --hover:#4A5AF0; --end:#7D7BFF;
+    --track:#D6E4FF; --line:#EDEEF6; --wash:#F4FBFF; --wash2:#FFF9FC;
+    --t1:#212121; --t2:#333; --t3:#666; --t4:#999;
+    --done:#14BB95; --warn:#FF6838;
+    --card:20px; --btn:25px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{font-family:"Mark Pro","思源黑体","Source Han Sans SC","Noto Sans SC",sans-serif;
+    background:#EDF0FA;display:flex;justify-content:center;align-items:center;}
+  .demo-shell{display:flex;align-items:center;gap:34px;padding:28px;}
+  .phone{width:375px;height:812px;position:relative;overflow:hidden;flex-shrink:0;
+    background:radial-gradient(240px 180px at 92% 0%,rgba(125,123,255,.14),transparent 70%),
+               radial-gradient(220px 180px at 0% 88%,rgba(214,228,255,.8),transparent 68%),
+               linear-gradient(180deg,var(--wash2),var(--wash) 46%,#fff 100%);
+    box-shadow:0 12px 40px rgba(91,108,255,.16);}
+  .page{position:absolute;inset:0 0 68px;padding:20px 20px 28px;overflow-y:auto;z-index:1;}
+  .page.hidden{display:none!important;pointer-events:none;visibility:hidden;}
+  .page.hidden,.sheet.hidden,.overlay.hidden{display:none;}
+  .card{background:#fff;border-radius:var(--card);box-shadow:0 6px 12px rgba(91,108,255,.16);}
+  h1{font-size:24px;font-weight:800;color:var(--t1);}
+  .sub{font-size:12px;color:var(--t4);margin-top:4px;}
+  .sec{display:flex;align-items:center;justify-content:space-between;margin:22px 0 12px;}
+  .sec h2{font-size:16px;font-weight:800;}
+  .link{font-size:12px;font-weight:700;color:var(--primary);cursor:pointer;background:none;border:none;font-family:inherit;}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:16px;}
+  .kpi{background:#fff;border-radius:16px;padding:10px 6px;text-align:center;box-shadow:0 6px 12px rgba(91,108,255,.1);}
+  .kpi b{display:block;font-size:18px;} .kpi span{font-size:10px;color:var(--t4);}
+  .row{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;width:100%;text-align:left;background:none;border:none;font-family:inherit;color:inherit;}
+  .row + .row{border-top:1px solid var(--line);}
+  .ico{width:42px;height:42px;border-radius:12px;background:#EEF0FF;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+  .bd{flex:1;min-width:0;}
+  .bd .t{font-size:14px;font-weight:800;margin-bottom:3px;}
+  .bd .s{font-size:11.5px;color:var(--t3);line-height:1.45;}
+  .tag{display:inline-flex;font-size:10px;font-weight:800;padding:2px 8px;border-radius:100px;background:#EEF0FF;color:var(--primary);white-space:nowrap;}
+  .tag.warn{background:#FFF1EB;color:var(--warn);} .tag.ok{background:#E6F9F4;color:var(--done);}
+  .cta{width:100%;height:49px;border:none;border-radius:var(--btn);background:var(--primary);color:#fff;
+    font:800 15px "Mark Pro","思源黑体",sans-serif;box-shadow:0 6px 16px #AFCCFF;cursor:pointer;}
+  .cta:active{background:var(--hover);}
+  .cta.ghost{background:#EEF0FF;color:var(--primary);box-shadow:none;}
+  .cta.sm{height:36px;width:auto;padding:0 14px;font-size:12px;box-shadow:none;}
+  .act-pair{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0;}
+  .act-btn{height:40px;width:100%;display:flex;align-items:center;justify-content:center;gap:6px;padding:0 12px;border:1px solid #D6E4FF;border-radius:20px;background:#fff;font-family:inherit;color:#212121;font-size:13px;font-weight:800;box-shadow:0 4px 10px rgba(91,108,255,.1);cursor:pointer;}
+  .act-btn .ico{width:22px;height:22px;border-radius:8px;background:#EEF0FF;color:var(--primary);font-size:12px;}
+  .act-btn.primary{background:#F4F5FF;}
+  .grade-tag{width:22px;height:22px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;flex-shrink:0;}
+  .grade-tag.S{background:var(--primary);color:#fff;}
+  .grade-tag.A{background:#EEF0FF;color:var(--primary);}
+  .grade-tag.B{background:#F3F4F8;color:#666;}
+  .grade-tag.C{background:#F6F6F8;color:#999;}
+  .so-card{padding:10px 12px;margin-bottom:6px;}
+  #p-stores{display:flex;flex-direction:column;padding:16px 16px 10px;}
+  #p-stores .so-head h1{font-size:22px;}
+  #p-stores .so-tabs{margin:8px 0;}
+  #storeList{flex:1;min-height:0;}
+  #p-stores .so-more{width:100%;margin-top:8px;border:0;background:none;color:var(--primary);font:800 12px inherit;cursor:pointer;}
+  .so-card.dim{opacity:.62;box-shadow:none;}
+  .so-card.dim .tk{color:#8A93B0;}
+  .so-card.dim .so-name > button{cursor:default;}
+  .so-wait{color:var(--primary);font-size:11px;font-weight:800;white-space:nowrap;}
+  .so-name{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+  .so-name > button{flex:1;min-width:0;overflow:hidden;background:none;border:0;padding:0;text-align:left;font-family:inherit;color:inherit;cursor:pointer;}
+  .so-name b{display:flex;align-items:center;gap:6px;font-size:14px;color:#1F2437;min-width:0;}
+  .so-name .tk{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .so-name .grade-tag{width:18px;height:18px;font-size:10px;border-radius:6px;}
+  .so-go-pri{background:var(--primary);color:#fff;}
+  .so-acts{display:flex;align-items:center;gap:6px;flex-shrink:0;position:relative;z-index:1;}
+  .so-ico{width:30px;height:30px;border:0;border-radius:50%;background:#F4F6FF;color:#5B6CFF;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+  .so-ico svg{width:15px;height:15px;}
+  .st-title{display:flex;align-items:center;gap:8px;min-width:0;}
+  .st-title h1{font-size:20px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .st-title .so-ico{width:34px;height:34px;flex-shrink:0;}
+  .st-title .so-ico svg{width:16px;height:16px;}
+  .so-go{height:30px;padding:0 10px;border:0;border-radius:15px;background:#EEF0FF;color:var(--primary);font:800 12px inherit;cursor:pointer;}
+  .so-card.patrolled .so-go{height:26px;padding:0 8px;font-size:10px;border-radius:13px;}
+  .so-meta{margin-top:4px;color:#7A84A3;font-size:11px;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  #p-collab{background:linear-gradient(180deg,#F4FBFF 0,#fff 42%);}
+  #p-collab .so-head{align-items:flex-start;}
+  .co-acts{display:grid;grid-template-columns:1fr 1.2fr;gap:8px;margin:14px 0 2px;}
+  .co-acts .cta{height:48px;font-size:15px;}
+  .co-acts .cta.ghost{height:48px;}
+  .so-mini{display:flex;align-items:center;gap:10px;margin-top:8px;color:#7A84A3;font-size:11px;}
+  .so-mini b{color:#1F2437;}
+  .so-report{display:flex;align-items:center;justify-content:space-between;width:100%;height:34px;margin-top:8px;padding:0 12px;border:0;border-radius:12px;background:#EEF0FF;color:var(--primary);font:800 11px inherit;cursor:pointer;}
+  .so-report em{font-style:normal;color:#8A93B0;font-size:10px;font-weight:700;}
+  .so-report.busy{background:#F4F6FF;color:#8A93B0;}
+  .rp-kicker{font-size:11px;font-weight:800;color:var(--primary);letter-spacing:.06em;}
+  .rp-sum{padding:16px;margin-top:12px;}
+  .rp-sum p{margin-top:8px;color:#4C5678;font-size:13px;line-height:1.65;}
+  .rp-item{padding:12px 16px;border-bottom:1px solid var(--line);}
+  .rp-item:last-child{border-bottom:0;}
+  .rp-item b{display:block;font-size:13px;color:#1F2437;}
+  .rp-item small{display:block;margin-top:4px;color:#667089;font-size:12px;line-height:1.5;}
+  .so-alert{margin-top:10px;padding:8px 10px;border-radius:10px;background:#F4F6FF;color:#4C5678;font-size:11px;line-height:1.45;}
+  .so-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px;}
+  .st-acts{display:grid;grid-template-columns:1fr 1.75fr;gap:8px;align-items:center;margin-top:16px;}
+  .st-acts .cta{height:56px;font-size:16px;}
+  .st-acts .cta.ghost{height:44px;font-size:13px;box-shadow:none;}
+  .so-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
+  .so-head > div{flex:1;min-width:0;}
+  .so-tabs{display:flex;gap:18px;overflow-x:auto;margin:12px 0 10px;border-bottom:1px solid #EEF0F6;}
+  .so-tabs::-webkit-scrollbar{display:none;}
+  .so-tabs button{flex:0 0 auto;height:36px;border:0;background:none;color:#8A93B0;font:800 13px inherit;padding:0;cursor:pointer;}
+  .so-tabs button.on{color:#1F2437;box-shadow:inset 0 -2px 0 var(--primary);}
+  .sheet.hidden,.overlay.hidden,.overlay:empty{display:none!important;pointer-events:none;}
+  .so-search-btn{width:36px;height:36px;flex:0 0 36px;border:0;border-radius:12px;background:#fff;color:var(--primary);box-shadow:0 6px 12px rgba(91,108,255,.12);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;z-index:2;}
+  .so-search-btn.on,.so-search-btn.hot{background:var(--primary);color:#fff;}
+  .so-search-btn svg{width:18px;height:18px;}
+  .so-search-btn i{position:absolute;top:6px;right:6px;width:6px;height:6px;border-radius:50%;background:var(--warn);}
+  .so-lab{margin:12px 0 6px;color:#8A93B0;font-size:11px;font-weight:800;}
+  .call-ui{text-align:center;padding:8px 0 4px;}
+  .call-ui .me-ava{margin:8px auto 12px;}
+  .call-ui h3{font-size:18px;}
+  .call-pulse{width:14px;height:14px;border-radius:50%;background:var(--done);margin:10px auto 0;box-shadow:0 0 0 6px rgba(20,187,149,.16);animation:asrPulse 1.2s ease-in-out infinite;}
+  .call-pulse.rec{background:var(--warn);box-shadow:0 0 0 6px rgba(255,104,56,.16);}
+  .call-rec{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;margin:12px 0 0;padding:12px 14px;border:0;border-radius:14px;background:#F4F6FF;text-align:left;font-family:inherit;cursor:pointer;}
+  .call-rec b{display:block;font-size:13px;color:#30385A;}
+  .call-rec small{display:block;margin-top:3px;color:#7A84A3;font-size:11px;}
+  .call-rec.on{background:#FFF1EB;}
+  .call-rec.on b{color:var(--warn);}
+  .call-rec .switch{pointer-events:none;}
+  .grow-card{padding:16px;}
+  .grow-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;}
+  .grow-pts{display:block;margin-top:2px;font-size:28px;font-weight:800;letter-spacing:-.03em;line-height:1.1;}
+  .grow-card .bar{margin:12px 0 6px;}
+  .grow-card .nums{margin:14px 0 0;}
+  .badge-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;}
+  .badge{font-size:10px;font-weight:800;padding:5px 9px;border-radius:100px;background:#F4F5FF;color:var(--primary);}
+  #p-me{padding:0;background:linear-gradient(180deg,#EAF1FF 0,#F3F7FF 36%,#fff 58%);}
+  .me-hero{padding:22px 16px 0;text-align:center;}
+  .me-kicker{font-size:17px;font-weight:850;letter-spacing:-.03em;color:#1F2437;}
+  .me-kicker:before,.me-kicker:after{content:"✦";margin:0 8px;color:#8EA0FF;font-size:12px;}
+  .me-user{margin:8px 0 18px;color:#7A84A3;font-size:12px;line-height:1.45;}
+  .me-user b{color:#30385A;}
+  .me-tabs{display:grid;grid-template-columns:1fr 1fr;align-items:end;}
+  .me-tabs button{height:48px;border:0;background:transparent;color:#8A93B0;font:800 15px inherit;cursor:pointer;}
+  .me-tabs button.on{background:#fff;color:#1F2437;border-radius:20px 20px 0 0;}
+  .me-panel{background:#fff;padding:16px 16px 22px;min-height:calc(100% - 168px);}
+  .me-compare{display:grid;grid-template-columns:1fr 1.15fr;gap:10px;padding:14px 12px;border-radius:16px;background:#F6F8FF;}
+  .me-col{text-align:left;}
+  .me-col .dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:5px;background:#C5CBE6;vertical-align:middle;}
+  .me-col.on .dot{background:var(--done);}
+  .me-col small{display:block;margin-bottom:8px;color:#8A93B0;font-size:10px;font-weight:800;}
+  .me-col b{display:block;font-size:22px;letter-spacing:-.04em;color:#1F2437;}
+  .me-col p{margin-top:6px;color:#667089;font-size:11px;line-height:1.5;}
+  .me-note{margin:12px 0 14px;text-align:center;color:#7A84A3;font-size:12px;}
+  .me-cta{position:relative;margin:0 0 12px;}
+  .me-cta .cta{border-radius:24px;}
+  .me-cta em{position:absolute;right:10px;top:-10px;padding:3px 8px;border-radius:10px;background:#EEF0FF;color:var(--primary);font:800 10px inherit;font-style:normal;}
+  .me-hint{text-align:center;color:#9AA3BB;font-size:11px;margin-top:8px;}
+  .me-vip{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;margin:14px 0 16px;padding:12px 14px;border:0;border-radius:14px;background:#F4F6FF;color:inherit;font-family:inherit;text-align:left;cursor:pointer;}
+  .me-vip b{display:block;font-size:13px;color:#30385A;}
+  .me-vip span{display:block;margin-top:3px;color:#7A84A3;font-size:11px;}
+  .me-vip i{font-style:normal;color:var(--primary);font-size:12px;font-weight:800;white-space:nowrap;}
+  .me-chips{justify-content:space-between;margin-bottom:8px;}
+  .me-chips .chip{background:transparent;color:#667089;padding:8px 6px;}
+  .me-chips .chip.on{background:transparent;color:var(--primary);box-shadow:inset 0 -2px 0 var(--primary);border-radius:0;}
+  .me-spot{position:relative;display:flex;flex-direction:column;align-items:center;padding:28px 0 8px;}
+  .me-ava{width:86px;height:86px;border-radius:50%;background:linear-gradient(180deg,#EEF0FF,#D6E4FF);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:900;box-shadow:0 10px 20px rgba(91,108,255,.16);}
+  .me-plus{position:absolute;top:18px;left:50%;transform:translate(-10px,-6px);height:36px;padding:0 14px 0 10px;border:0;border-radius:18px;background:var(--primary);color:#fff;font:800 13px inherit;box-shadow:0 8px 16px #AFCCFF;cursor:pointer;}
+  .search{height:39px;border:1.5px solid #D6E4FF;border-radius:20px;background:#fff;display:flex;align-items:center;gap:8px;padding:0 14px;margin:14px 0 12px;}
+  .search input{border:none;outline:none;flex:1;font:13px inherit;background:transparent;}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;}
+  .chip{border:none;background:#EEF0FF;color:var(--t3);font:700 12px inherit;padding:7px 12px;border-radius:100px;cursor:pointer;}
+  .chip.on{background:var(--primary);color:#fff;}
+  .banner{display:none;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px;padding:10px 12px;border-radius:16px;background:#FFF1EB;color:var(--warn);font-size:12px;font-weight:700;}
+  .banner.show{display:flex;} .banner.ok{background:#E6F9F4;color:var(--done);}
+  .nums{display:flex;justify-content:space-between;margin:10px 0 12px;}
+  .nums div{text-align:center;} .nums b{display:block;font-size:18px;} .nums span{font-size:10px;color:var(--t4);}
+  .bar{height:8px;border-radius:99px;background:var(--track);overflow:hidden;}
+  .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--primary),var(--end));}
+  .photos{display:flex;gap:8px;flex-wrap:wrap;}
+  .ph{width:72px;height:72px;border-radius:14px;background:#EEF0FF;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--primary);cursor:pointer;position:relative;border:none;}
+  .ph .shot{width:100%;height:100%;border-radius:14px;background:linear-gradient(160deg,#D6E4FF,#EEF0FF);}
+  .ph .x{position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:#212121;color:#fff;font-size:11px;line-height:18px;}
+  textarea,select,input.fld{width:100%;border:1.5px solid #D6E4FF;border-radius:16px;padding:10px 12px;font:13px inherit;outline:none;background:#fff;}
+  textarea{min-height:76px;resize:none;}
+  textarea:focus,select:focus,input.fld:focus{border-color:var(--primary);}
+  .field{margin-bottom:12px;} .field label{display:block;font-size:12px;font-weight:700;color:var(--t3);margin-bottom:6px;}
+  .sheet{position:absolute;inset:0;z-index:8;background:linear-gradient(180deg,var(--wash2),#fff);overflow-y:auto;padding:16px 20px 80px;}
+  .nav{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+  .back{width:36px;height:36px;border:none;border-radius:12px;background:#EEF0FF;color:var(--primary);cursor:pointer;font-size:18px;}
+  .overlay{position:absolute;inset:0;z-index:12;background:rgba(33,33,33,.45);display:flex;align-items:flex-end;}
+  .modal{width:100%;background:#fff;border-radius:20px 20px 0 0;box-shadow:0 6px 16px #AFCCFF;padding:18px 20px 24px;max-height:86%;overflow-y:auto;}
+  .modal h3{font-size:18px;font-weight:800;}
+  .hint{font-size:12px;color:var(--t4);background:#EEF0FF;border-radius:12px;padding:10px 12px;margin:10px 0 14px;line-height:1.5;}
+  .tabbar{position:absolute;left:0;right:0;bottom:0;height:68px;background:#fff;border-top:1px solid var(--line);display:flex;z-index:6;padding:6px 4px 10px;}
+  .tab{flex:1;border:none;background:none;cursor:pointer;font-family:inherit;color:var(--t4);display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;font-weight:700;}
+  .tab.on{color:var(--primary);} .tab svg{width:22px;height:22px;}
+  .toast{position:absolute;left:50%;bottom:86px;transform:translateX(-50%) translateY(12px);background:#212121;color:#fff;font-size:12.5px;font-weight:600;padding:10px 16px;border-radius:100px;opacity:0;transition:.25s;z-index:20;white-space:nowrap;pointer-events:none;}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  .switch{width:42px;height:24px;border-radius:99px;background:#D6E4FF;position:relative;cursor:pointer;border:none;}
+  .switch.on{background:var(--primary);} .switch i{position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.2s;}
+  .switch.on i{left:20px;}
+  .empty{text-align:center;color:var(--t4);font-size:12px;padding:20px;}
+  .step{display:flex;gap:6px;margin:16px 0 6px;}
+  .step span{flex:1;height:6px;border-radius:99px;background:#E4E8F6;}
+  .step span.on{background:var(--primary);}
+  .step-labs{display:flex;justify-content:space-between;margin:0 0 16px;color:#8A93B0;font-size:11px;font-weight:700;}
+  .step-labs span.on{color:var(--primary);}
+  .demo{text-align:center;font-size:10px;color:#bbb;margin-top:16px;}
+  .dayline{display:flex;align-items:center;justify-content:space-between;margin:7px 0 16px;color:var(--t3);font-size:12px;}
+  .dayline b{color:var(--t1);font-size:12px;}
+  .focus{padding:17px 16px 16px;border-radius:20px;background:#202744;color:#fff;box-shadow:0 12px 24px rgba(32,39,68,.2);}
+  .focus .eyebrow{font-size:10px;letter-spacing:.08em;color:#BBC4FF;font-weight:800;}
+  .focus h2{font-size:18px;line-height:1.35;margin:7px 0 6px;letter-spacing:-.02em;}
+  .focus p{font-size:12px;line-height:1.5;color:#DCE1FF;}
+  .focus .reason{display:flex;gap:6px;align-items:center;margin-top:12px;font-size:11px;color:#DCE1FF;}
+  .focus .reason i{display:block;width:6px;height:6px;border-radius:50%;background:#91E5D3;}
+  .focus .go{display:flex;align-items:center;justify-content:center;width:100%;height:42px;border:0;border-radius:14px;margin-top:14px;background:#fff;color:#202744;font:800 13px inherit;cursor:pointer;}
+  .strip{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:3px;}
+  .strip::-webkit-scrollbar{display:none;}
+  .signal{min-width:228px;scroll-snap-align:start;padding:13px 14px;border-radius:16px;background:#fff;border:1px solid #E7E9F5;cursor:pointer;text-align:left;font-family:inherit;color:inherit;}
+  .signal .top{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:5px;}
+  .signal .name{font-size:13px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .signal p{font-size:11.5px;color:var(--t3);line-height:1.45;}
+  .section-note{font-size:11px;color:var(--t4);font-weight:500;}
+  .action-list .row{padding:13px 14px;}
+  .action-list .ico{width:36px;height:36px;border-radius:11px;font-size:15px;}
+  .receipt-shot{height:118px;border:1.5px dashed #B9C3FF;border-radius:18px;background:#F6F7FF;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;color:var(--primary);font-size:12px;font-weight:800;cursor:pointer;}
+  .receipt-shot b{font-size:28px;line-height:1;}.receipt-shot small{font-size:10px;color:#7F86A8;font-weight:600;}
+  .geo-note{margin-top:3px;font-size:10px;line-height:1.4;color:#A2A8BC;letter-spacing:.01em;}
+  .voice-input{display:flex;align-items:center;gap:11px;width:100%;padding:12px 13px;border:1px solid #E1E5FA;border-radius:16px;background:#F8F9FF;color:#30365A;text-align:left;font-family:inherit;cursor:pointer;}
+  .voice-input .mic{display:flex;align-items:center;justify-content:center;width:34px;height:34px;flex:0 0 34px;border-radius:12px;background:#E8EAFF;color:#5B6CFF;font-size:17px;}.voice-input b{display:block;font-size:12px;}.voice-input small{display:block;margin-top:3px;color:#8990AA;font-size:10px;line-height:1.4;}.voice-input.recorded{border-color:#93A0FF;background:#F3F4FF;}.voice-input.recorded .mic{background:#5B6CFF;color:#fff;}
+  .visit-voice-main{position:relative;width:100%;padding:16px;border:0;border-radius:19px;background:#EEF0FF;color:#30385A;text-align:left;font-family:inherit;box-shadow:inset 0 0 0 1px #E0E4FB,0 6px 14px rgba(68,88,130,.07);cursor:pointer;}.visit-voice-main .voice-top{display:flex;align-items:center;gap:11px;}.visit-voice-main .mic-main{display:flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:14px;background:#5B68E8;color:#fff;font-size:19px;box-shadow:0 6px 12px rgba(91,104,232,.22);}.visit-voice-main b{font-size:14px;}.visit-voice-main small{display:block;margin-top:4px;color:#76819F;font-size:10.5px;line-height:1.45;}.visit-voice-main .hold{margin-left:auto;border-radius:10px;background:#fff;padding:7px 9px;color:#5664E6;font-size:10px;font-weight:850;}.visit-voice-main .transcript{margin-top:12px;padding:9px 10px;border-radius:11px;background:rgba(255,255,255,.65);color:#5B6582;font-size:11px;line-height:1.55;}.visit-voice-main.recorded{background:#F3F4FF;}
+  .visit-voice-main + .cta{margin-top:14px;}
+  #p-visit{display:flex;flex-direction:column;}
+  #p-visit.ask-mode{padding:0 0 8px;background:linear-gradient(180deg,#F4FBFF 0,#F7F8FF 42%,#fff 100%);}
+  .visit-pin{position:sticky;top:0;z-index:3;display:flex;align-items:center;gap:8px;padding:12px 16px 10px;background:rgba(244,251,255,.94);backdrop-filter:blur(10px);}
+  .visit-pin .back{width:32px;height:32px;flex-shrink:0;}
+  .visit-pin i{width:22px;height:22px;border-radius:50%;background:var(--done);color:#fff;display:flex;align-items:center;justify-content:center;font:800 12px inherit;flex-shrink:0;font-style:normal;}
+  .visit-pin b{display:block;font-size:15px;color:#1F2437;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .visit-pin span{display:block;margin-top:2px;color:#8A93B0;font-size:11px;}
+  .visit-pin .on{color:var(--done);font-weight:800;}
+  .visit-pin .geo{margin-top:2px;color:#A2A8BC;font-size:10px;letter-spacing:.01em;}
+  .asr-box{margin:10px 0 0;padding:14px 15px 16px;border-radius:18px;background:#fff;box-shadow:0 6px 12px rgba(91,108,255,.12);}
+  .asr-modal{padding-bottom:28px;}
+  .asr-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;}
+  .asr-lab{color:#5B6CFF;font-size:11px;font-weight:800;}
+  .asr-live{min-height:120px;color:#1F2437;font-size:16px;line-height:1.7;font-weight:600;}
+  .asr-live em{color:#8A93B0;font-style:normal;font-weight:500;}
+  .asr-edit{width:100%;min-height:140px;border:0;background:#F7F8FF;border-radius:12px;padding:12px;resize:none;outline:none;font:600 16px/1.7 inherit;color:#1F2437;}
+  .asr-acts{display:grid;grid-template-columns:1fr 1.4fr;gap:8px;align-items:center;margin-top:16px;}
+  .asr-acts .cta{height:49px;}
+  .asr-acts .cta.ghost{height:44px;}
+  .asr-peek{display:flex;align-items:center;justify-content:space-between;width:100%;margin-top:10px;padding:10px 12px;border:0;border-radius:12px;background:#EEF0FF;color:var(--primary);font:800 12px inherit;cursor:pointer;}
+  .asr-peek em{font-style:normal;color:#8A93B0;font-weight:700;}
+  .mic-fab{touch-action:none;}
+  .visit-body{padding:0 16px 8px;flex:1;display:flex;flex-direction:column;min-height:0;}
+  .visit-scroll{flex:1;min-height:0;overflow:auto;padding-bottom:6px;}
+  .visit-bar{flex-shrink:0;padding:6px 0 4px;}
+  .visit-dock-card{display:flex;flex-direction:column;align-items:center;padding:12px 14px 10px;border-radius:20px;background:#fff;box-shadow:0 8px 20px rgba(91,108,255,.12);}
+  .visit-hint{display:block;text-align:center;margin-bottom:8px;color:#7A84A3;font-size:11px;font-weight:700;}
+  .visit-bar-row{display:flex;align-items:center;justify-content:center;gap:12px;}
+  .visit-bar.has-text .visit-bar-row{justify-content:stretch;}
+  .visit-bar.has-text .mic-fab{width:52px;height:52px;flex-shrink:0;}
+  .visit-bar.has-text .mic-fab svg{width:22px;height:22px;}
+  .visit-bar.has-text .cta{flex:1;height:52px;margin:0;}
+  .visit-bar.listening .cta{display:none;}
+  .visit-bar.listening .visit-dock-card{box-shadow:0 8px 20px rgba(255,104,56,.16);}
+  .ask-head{padding:10px 14px 2px;margin:0;color:#5A6280;font-size:11px;font-weight:800;}
+  .ask-card{overflow:hidden;padding-bottom:4px;}
+  .ask-row{display:flex;align-items:flex-start;gap:10px;padding:8px 14px;border:0;border-bottom:1px solid var(--line);background:#fff;}
+  .ask-row:last-child{border-bottom:0;}
+  .ask-no{width:18px;height:18px;flex:0 0 18px;border-radius:6px;background:#EEF0FF;color:var(--primary);display:flex;align-items:center;justify-content:center;margin-top:1px;font-size:10px;font-weight:800;}
+  .ask-row.hot .ask-no{background:#FFF1EB;color:var(--warn);}
+  .ask-row b{display:block;font-size:13px;line-height:1.35;color:#1F2437;font-weight:800;}
+  .ask-row b em{margin-left:6px;font-style:normal;font-size:10px;color:var(--warn);font-weight:800;}
+  .ask-hot{display:none;}
+  .ask-row small{display:block;margin-top:2px;color:#8A93B0;font-size:11px;line-height:1.4;}
+  .trace-card{margin-top:10px;padding:0 12px 12px;}
+  .trace-card .photos{margin-top:8px;}
+  .trace-card .ph{width:56px;height:56px;border-radius:12px;font-size:10px;}
+  .trace-card .ph.add{border:1.5px dashed #C5CCF5;background:#F7F8FF;}
+  .visit-bar .mic-fab{width:64px;height:64px;}
+  .visit-bar .mic-fab svg{width:26px;height:26px;}
+  .visit-dock{margin-top:auto;padding:10px 0 4px;}
+  .visit-dock .dock-head{margin-bottom:2px;}
+  .mic-fab.listen{background:var(--warn);box-shadow:0 8px 18px rgba(255,104,56,.28);}
+  .goal-panel{padding:14px 15px;border-radius:18px;background:#18213B;color:#fff;box-shadow:0 10px 22px rgba(24,33,59,.18);}
+  .goal-panel .goal-top{display:flex;align-items:center;justify-content:space-between;gap:8px;}.goal-panel .goal-label{font-size:11px;color:#BFC8E8;font-weight:700;}.goal-panel .goal-num{font-size:13px;font-weight:800;}.goal-panel .goal-num em{font-style:normal;color:#8DE0D0;}
+  .goal-panel .bar{background:#39445F;margin-top:11px;height:7px;}.goal-panel .bar i{background:linear-gradient(90deg,#91E5D3,#6D85FF);}.goal-panel .goal-foot{display:flex;justify-content:space-between;margin-top:7px;color:#BFC8E8;font-size:10px;}
+  .assistant-hero{display:flex;gap:10px;align-items:flex-start;margin:18px 0 12px;}.assistant-avatar{width:36px;height:36px;flex:0 0 36px;border-radius:13px;background:#E6F9F4;color:#159D7F;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:inset 0 0 0 1px #D0F1E9;}.assistant-bubble{background:#fff;border:1px solid #E8EBF4;border-radius:5px 17px 17px 17px;padding:12px 13px;font-size:13px;line-height:1.55;color:#323A50;box-shadow:0 5px 13px rgba(44,57,98,.07);}.assistant-bubble b{color:#18213B;}
+  .recommend-note{display:flex;align-items:center;justify-content:space-between;padding:9px 11px;border-radius:12px;background:#FFF6EE;color:#8B563B;font-size:11px;line-height:1.4;margin-bottom:10px;}.recommend-note b{font-size:11px;}
+  .store-age{font-size:10px;font-weight:800;color:#A44A2D;background:#FFF1EB;padding:3px 7px;border-radius:100px;white-space:nowrap;}
+  /* 今日作战：以对话式 AI 助手作为首屏入口 */
+  #p-fight{padding:0 0 76px;background:#E9ECFF;scroll-behavior:smooth;}
+  .fight-visual{padding:18px 20px 20px;position:relative;background:#F1F3FF;color:#15183F;}
+  .fight-head{display:flex;align-items:center;justify-content:space-between;position:relative;z-index:1;}
+  .fight-brand{display:flex;align-items:center;gap:10px;font-size:17px;font-weight:850;letter-spacing:-.04em;}
+  .fight-menu{border:0;background:transparent;color:#16183B;font:900 27px/1 inherit;width:30px;cursor:pointer;}
+  .fight-head-actions{display:flex;align-items:center;gap:10px;}.fight-plus{width:36px;height:36px;border:0;border-radius:50%;background:rgba(255,255,255,.78);color:#35358B;font:800 24px/1 inherit;cursor:pointer;}.fight-profile{border:0;border-radius:13px;background:rgba(255,255,255,.9);color:#5158E8;padding:10px 13px;font:800 12px inherit;cursor:pointer;}
+  .fight-intro{margin-top:22px;z-index:1;}.fight-intro h1{font-size:20px;line-height:1.18;letter-spacing:-.06em;color:#171943;}.fight-intro h1 b{color:#525BEA;}.fight-intro p{margin-top:5px;font-size:10px;line-height:1.4;color:#70779E;white-space:nowrap;}
+  .sales-command{width:100%;margin-top:14px;padding:15px 16px 14px;border:0;border-radius:19px;background:#242C53;color:#fff;box-shadow:0 12px 22px rgba(36,44,83,.2);font-family:inherit;text-align:left;cursor:pointer;}.sales-command .top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}.sales-command .label{font-size:11px;color:#C3CAED;font-weight:750;}.sales-command strong{display:block;margin-top:3px;font-size:24px;letter-spacing:-.04em;line-height:1;}.sales-command strong small{font-size:12px;color:#C3CAED;font-weight:700;letter-spacing:0;}.sales-command .rate{padding:6px 8px;border-radius:10px;background:#39436F;color:#A8F0D6;font-size:12px;font-weight:850;}.sales-command .bar{height:7px;margin-top:12px;background:#414B75;}.sales-command .bar i{background:#8BE3CF;}.sales-command .foot{display:flex;justify-content:space-between;margin-top:7px;font-size:10px;color:#C3CAED;}
+  .ai-console{position:relative;z-index:2;margin:12px 12px 0;border:1px solid rgba(255,255,255,.92);border-radius:24px;background:rgba(255,255,255,.94);box-shadow:0 14px 28px rgba(63,76,154,.14);overflow:hidden;backdrop-filter:blur(12px);}
+  .ai-modes{display:flex;align-items:center;gap:0;padding:0 10px;border-bottom:1px solid #EEF0F8;overflow-x:auto;}.ai-modes button{flex:1;min-width:78px;height:54px;border:0;background:transparent;color:#8790B3;font:750 12px inherit;white-space:nowrap;cursor:pointer;}.ai-modes button.on{color:#171943;background:#fff;border-radius:18px 18px 0 0;font-weight:850;}
+  .ai-answer{padding:16px 16px 8px;}.ai-answer .eyebrow{font-size:10px;font-weight:850;color:#5862DF;letter-spacing:.06em;}.ai-answer h2{margin-top:5px;font-size:16px;color:#20234D;letter-spacing:-.04em;}.ai-answer p{margin-top:5px;font-size:11px;color:#737B9A;line-height:1.5;}
+  .quick-question{display:flex;align-items:center;justify-content:space-between;width:100%;margin-top:11px;padding:9px 10px;border:1px solid #E3E6FA;border-radius:13px;background:#F7F8FF;color:#4C56CB;text-align:left;font:800 11px inherit;cursor:pointer;}.quick-question span{font-size:16px;line-height:1;}
+  .ai-store-list{margin-top:10px;border-top:1px solid #F0F1F7;}.ai-store{display:flex;align-items:center;gap:8px;padding:9px 0;border:0;border-bottom:1px solid #F3F3F8;background:transparent;width:100%;text-align:left;font-family:inherit;color:inherit;cursor:pointer;}.ai-store:last-child{border-bottom:0;}.rank-dot{display:flex;align-items:center;justify-content:center;width:27px;height:27px;border-radius:9px;background:#E9EBFF;color:#4D58D5;font-size:11px;font-weight:900;flex:0 0 27px;}.ai-store .name{flex:1;min-width:0;font-size:12px;font-weight:800;color:#2A2D54;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}.ai-store .meta{font-size:10px;color:#A15B45;white-space:nowrap;}
+  .voice-ask{display:flex;align-items:center;gap:10px;width:100%;margin-top:12px;padding:11px 13px;border:0;border-radius:16px;background:#565FE4;color:#fff;text-align:left;font-family:inherit;box-shadow:0 7px 14px rgba(86,95,228,.23);cursor:pointer;}.voice-ask .mic{display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:12px;background:rgba(255,255,255,.18);font-size:17px;}.voice-ask b{display:block;font-size:13px;}.voice-ask span:last-child{display:block;margin-top:2px;font-size:10px;color:#E5E6FF;}.voice-ask .chev{margin-left:auto;font-size:19px;color:#fff;}
+  .fight-more{padding:18px 20px 0;}.fight-more .sales-glance{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:16px;background:#fff;box-shadow:0 5px 13px rgba(55,68,140,.08);}.sales-glance .label{font-size:11px;color:#777F9E;font-weight:700;}.sales-glance b{display:block;font-size:15px;color:#23264E;margin-top:3px;}.sales-glance .progress{width:88px;}.sales-glance .progress span{display:block;font-size:11px;color:#5862DF;font-weight:850;text-align:right;margin-bottom:6px;}.sales-glance .progress i{display:block;height:6px;border-radius:99px;background:#E6E8FA;overflow:hidden;}.sales-glance .progress i:after{content:"";display:block;width:79.5%;height:100%;border-radius:99px;background:#5D67E8;}
+  /* 推荐流首页：以 AI 建议清单和语音问答为主，不再使用背景视觉 */
+  #p-fight{background:#EAF4FF;padding:0;}
+  .recommend-home{min-height:100%;padding:36px 20px 12px;display:flex;flex-direction:column;background:linear-gradient(180deg,#EFFAFF 0,#E9F2FF 36%,#F4F8FF 100%);}
+  .recommend-top{display:flex;align-items:center;justify-content:space-between;}.recommend-back{border:0;background:none;color:#1F2437;font:800 16px inherit;cursor:pointer;}.recommend-top .enable{border:1px solid #fff;background:rgba(255,255,255,.72);border-radius:14px;padding:9px 11px;color:#1E2432;font:800 12px inherit;box-shadow:0 4px 12px rgba(85,127,166,.08);cursor:pointer;}
+  .history-tip{text-align:center;margin:42px 0 28px;color:#68748A;font-size:11px;}.history-tip:before,.history-tip:after{content:"";display:inline-block;width:35px;height:1px;background:#A9B7C8;vertical-align:middle;margin:0 9px;}
+  .recommend-hero{border:1px solid rgba(255,255,255,.88);border-radius:30px;background:rgba(255,255,255,.8);padding:20px 14px 0;box-shadow:0 14px 25px rgba(70,113,156,.1);}
+  .sales-brief{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;}
+  .sales-tile{width:100%;padding:12px 12px 11px;border:1px solid #DFE3FF;border-radius:16px;background:#F0F2FF;color:#29315D;text-align:left;font-family:inherit;cursor:pointer;}
+  .sales-tile .label{display:flex;align-items:center;justify-content:space-between;font-size:11px;color:#59658E;font-weight:850;}
+  .sales-tile .label i{font-style:normal;color:#5967E8;font-size:10px;}
+  .sales-tile b{display:block;margin-top:8px;font-size:22px;letter-spacing:-.05em;line-height:1;color:#29315D;}
+  .sales-tile small{display:block;margin-top:5px;color:#7882AA;font-size:10px;font-weight:700;line-height:1.4;}
+  .goal-sheet .nums{margin:8px 0 12px;}
+  .goal-sheet .series{margin-top:10px;}
+  .series-head{display:flex;justify-content:space-between;color:#59658E;font-size:10px;font-weight:850;}
+  .series-head span:last-child{color:#5967E8;}
+  .series-row{display:flex;align-items:center;gap:6px;margin-top:8px;font-size:9.5px;font-weight:800;color:#616B89;}
+  .series-row i{width:6px;height:6px;border-radius:50%;background:#6673ED;}
+  .series-row:nth-child(3) i{background:#FFB000;}
+  .series-row:nth-child(4) i{background:#18B896;}
+  .series-row .series-name{width:56px;}
+  .series-row .series-bar{flex:1;height:6px;border-radius:99px;background:#DCE1F7;overflow:hidden;}
+  .series-row .series-bar b{display:block;height:100%;border-radius:99px;background:#6673ED;}
+  .series-row:nth-child(3) .series-bar b{background:#FFB000;}
+  .series-row:nth-child(4) .series-bar b{background:#18B896;}
+  .series-row strong{width:47px;text-align:right;color:#404A6C;}
+  .income-lines{margin-top:8px;font-size:12px;line-height:1.7;color:#666;}
+  .income-lines b{color:#212121;}
+  .phone.talking .tabbar{display:none;}
+  .phone.talking #p-fight,.phone.talking #p-cases{inset:0;}
+  #p-cases{display:flex;flex-direction:column;}
+  #p-cases .home-dock{margin-top:auto;padding-top:8px;}
+  .voice-room{position:absolute;inset:0;z-index:7;display:flex;flex-direction:column;background:linear-gradient(180deg,#FFF9FC 0,#F4FBFF 42%,#fff 100%);}
+  .v-head{display:flex;align-items:center;gap:10px;padding:16px 16px 10px;}
+  .v-back{width:36px;height:36px;border:0;border-radius:12px;background:#EEF0FF;color:var(--primary);font-size:20px;cursor:pointer;}
+  .v-who{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:850;color:#212121;}
+  .v-ava{width:36px;height:36px;border-radius:50%;background:#EEF0FF;color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;}
+  .v-who em{font-style:normal;margin-left:4px;padding:2px 6px;border-radius:6px;background:#EEF0FF;color:var(--primary);font-size:10px;font-weight:800;}
+  .v-scroll{flex:1;overflow-y:auto;padding:4px 20px 12px;}
+  .v-ask{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:48px;margin-bottom:8px;padding:0 16px;border:0;border-radius:16px;background:#fff;box-shadow:0 6px 12px rgba(91,108,255,.08);color:#212121;font:700 13px inherit;text-align:left;cursor:pointer;}
+  .v-ask span{color:#C5C8D6;font-size:16px;}
+  .v-time{margin:18px 0 12px;text-align:center;color:#999;font-size:11px;}
+  .v-user{display:flex;justify-content:flex-end;margin:8px 0 14px;}
+  .v-user b{max-width:78%;padding:10px 14px;border-radius:18px 18px 4px 18px;background:var(--primary);color:#fff;font-size:14px;font-weight:700;line-height:1.45;box-shadow:0 6px 16px #AFCCFF;}
+  .v-bot{color:#212121;font-size:15px;line-height:1.65;font-weight:500;}
+  .v-from{margin:8px 0 16px;text-align:right;color:#C5C8D6;font-size:10px;}
+  .v-follow{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:44px;margin-top:8px;padding:0 2px 0 4px;border:0;background:transparent;color:#666;font:600 13px inherit;text-align:left;cursor:pointer;}
+  .v-follow span{color:#C5C8D6;font-size:16px;}
+  .v-foot{padding:8px 20px 22px;text-align:center;}
+  .v-hint{margin-bottom:10px;color:#999;font-size:12px;}
+  .v-hint.cancel{color:var(--warn);}
+  .wave-bar{width:100%;height:52px;border:0;border-radius:26px;background:var(--primary);box-shadow:0 6px 16px #AFCCFF;display:flex;align-items:center;justify-content:center;gap:3px;cursor:pointer;touch-action:none;user-select:none;}
+  .wave-bar i{width:3px;height:4px;border-radius:99px;background:#fff;opacity:.88;}
+  .wave-bar.on i{animation:dotWave .7s ease-in-out infinite alternate;}
+  .wave-bar.cancel{background:var(--warn);box-shadow:0 6px 16px rgba(255,104,56,.28);}
+  .wave-bar i:nth-child(3n){height:10px}.wave-bar i:nth-child(4n){height:16px}.wave-bar i:nth-child(5n){height:7px}.wave-bar i:nth-child(2n){height:12px}
+  @keyframes dotWave{to{transform:scaleY(.35);opacity:.45}}
+  .recommend-hero .hi{font-size:53px;line-height:.83;letter-spacing:-.09em;font-weight:900;font-style:italic;color:#202124;}.recommend-hero h1{margin-top:11px;font-size:23px;letter-spacing:-.06em;}.recommend-hero p{margin-top:8px;font-size:13px;line-height:1.45;color:#59657B;}.suggestions{margin:16px -14px 0;border-radius:25px 25px 21px 21px;background:#fff;padding:8px 14px 4px;}.suggest-head{display:flex;align-items:center;justify-content:space-between;padding:2px 0 6px;}.suggest-head span{font-size:12px;font-weight:800;color:#465171;}.suggest-head button{border:0;background:none;color:#5B6CFF;font-size:11px;font-weight:700;cursor:pointer;}.suggestion{display:flex;align-items:center;gap:10px;width:100%;min-height:60px;border:0;border-bottom:1px solid #EDF0F4;background:transparent;text-align:left;font:800 14px inherit;color:#222633;cursor:pointer;}.suggestion:last-child{border-bottom:0;}.suggestion .grade{display:flex;align-items:center;justify-content:center;width:25px;height:25px;border-radius:8px;background:#EEF0FF;color:#5966D9;font-size:10px;}.suggestion .txt{flex:1;}.suggestion .detail{display:block;margin-top:3px;color:#8490A7;font-size:10px;font-weight:600;}.suggestion .arrow{font-size:25px;line-height:1;color:#1C2630;}
+  .home-dock{margin-top:auto;padding:0 4px 2px;border:0;background:transparent;box-shadow:none;}
+  .dock-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+  .dock-head{display:flex;align-items:center;flex-shrink:0;margin:0;color:#5A6280;font-size:11px;font-weight:700;white-space:nowrap;}
+  .dock-head:before{content:"✦";margin-right:5px;color:#7B84C8;font-size:10px;}
+  .home-pills{display:flex;flex:1;gap:6px;overflow-x:auto;padding:0;}
+  .home-pills button{flex:0 0 auto;border:1px solid #D6E4FF;border-radius:100px;background:#fff;padding:6px 11px;color:#333;font-size:12px;font-weight:700;cursor:pointer;}
+  .voice-tools{position:relative;display:flex;align-items:center;justify-content:center;min-height:96px;margin-top:2px;}
+  .voice-main{display:flex;flex-direction:column;align-items:center;gap:6px;}
+  .voice-cap{color:#7A84A3;font-size:11px;font-weight:800;letter-spacing:.02em;}
+  .mic-fab{width:68px;height:68px;flex-shrink:0;border:0;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 20px #AFCCFF;cursor:pointer;}
+  .mic-fab:active{background:var(--hover);}
+  .mic-fab svg{display:block;width:28px;height:28px;}
+  .kb-fab{position:absolute;right:2px;bottom:18px;width:32px;height:32px;border:0;border-radius:50%;background:transparent;color:#A4ABC2;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+  .kb-fab svg{display:block;width:18px;height:18px;}
+  .voice-tools.text{min-height:0;height:auto;justify-content:stretch;gap:10px;padding:0 2px 4px;}
+  .voice-tools.text .mic-fab{width:44px;height:44px;box-shadow:0 4px 10px rgba(91,108,255,.2);}
+  .voice-tools.text .mic-fab svg{width:20px;height:20px;}
+  .ask-field{flex:1;min-width:0;height:48px;display:flex;align-items:center;gap:8px;padding:0 6px 0 16px;border-radius:24px;background:#fff;box-shadow:0 6px 12px rgba(91,108,255,.12);}
+  .ask-field input{flex:1;min-width:0;border:0;outline:none;background:transparent;font:13px inherit;color:#1F2437;}
+  .ask-field input::placeholder{color:#9AA3BB;}
+  .ask-send{width:36px;height:36px;flex-shrink:0;border:0;border-radius:50%;background:#EEF0FF;color:var(--primary);display:flex;align-items:center;justify-content:center;cursor:pointer;}
+  .ask-send svg{width:16px;height:16px;}
+  .voice-asr,.voice-chat{margin-top:15px;padding:14px;border:1px solid rgba(255,255,255,.94);border-radius:22px;background:rgba(250,252,255,.94);box-shadow:0 12px 28px rgba(75,102,157,.11);}.voice-asr-head,.voice-chat-head{display:flex;align-items:center;justify-content:space-between;color:#465171;font-size:12px;font-weight:850;}.voice-close{border:0;border-radius:9px;background:#EEF0F8;padding:5px 8px;color:#657089;font:800 11px inherit;cursor:pointer;}.asr-core{display:flex;align-items:center;gap:12px;margin-top:13px;padding:13px;border-radius:16px;background:#EEF0FF;}.asr-pulse{display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:14px;background:#5B68E8;color:#fff;font-size:17px;box-shadow:0 0 0 7px rgba(91,104,232,.11);animation:asrPulse 1.15s ease-in-out infinite;}.asr-core b{display:block;color:#30385A;font-size:13px;}.asr-core small{display:block;margin-top:4px;color:#7B85A2;font-size:10px;}.asr-wave{display:flex;align-items:center;justify-content:center;gap:3px;height:20px;margin-left:auto;}.asr-wave i{display:block;width:3px;border-radius:8px;background:#6673ED;animation:wave 0.7s ease-in-out infinite alternate;}.asr-wave i:nth-child(1){height:7px}.asr-wave i:nth-child(2){height:16px;animation-delay:.12s}.asr-wave i:nth-child(3){height:10px;animation-delay:.24s}.asr-wave i:nth-child(4){height:19px;animation-delay:.36s}.asr-wave i:nth-child(5){height:8px;animation-delay:.48s}@keyframes asrPulse{50%{transform:scale(.92);box-shadow:0 0 0 12px rgba(91,104,232,.05)}}@keyframes wave{to{transform:scaleY(.45)}}
+  .chat-bubble{margin-top:12px;padding:11px 12px;border-radius:14px;font-size:12px;line-height:1.5;}.chat-bubble.user{margin-left:38px;background:#5B68E8;color:#fff;border-bottom-right-radius:4px;}.chat-bubble.assistant{margin-right:14px;background:#F0F2FF;color:#3F4969;border-bottom-left-radius:4px;}.chat-bubble .who{display:block;margin-bottom:3px;font-size:10px;font-weight:850;opacity:.7;}.voice-result-list{margin-top:10px;border:1px solid #E4E7F4;border-radius:14px;background:#fff;overflow:hidden;}.voice-result-list button{display:flex;align-items:center;gap:9px;width:100%;padding:10px;border:0;border-bottom:1px solid #EDF0F5;background:transparent;text-align:left;font-family:inherit;cursor:pointer;}.voice-result-list button:last-child{border-bottom:0;}.voice-result-list .rank-dot{width:25px;height:25px;border-radius:8px;font-size:10px;}.voice-result-list b{font-size:11px;color:#343D5B;}.voice-result-list small{display:block;margin-top:2px;font-size:10px;color:#8590AA;}.voice-again{width:100%;height:40px;margin-top:12px;border:0;border-radius:13px;background:#EEF0FF;color:#5664E6;font:850 12px inherit;cursor:pointer;}
+  .journey{width:390px;max-height:812px;overflow:auto;padding:22px 20px 18px;border-radius:24px;background:rgba(255,255,255,.86);border:1px solid rgba(255,255,255,.9);box-shadow:0 14px 36px rgba(60,75,128,.13);backdrop-filter:blur(10px);}
+  .journey::-webkit-scrollbar{width:5px;}.journey::-webkit-scrollbar-thumb{background:#D6E4FF;border-radius:10px;}
+  .journey-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:18px;}
+  .journey-kicker{font-size:10px;font-weight:800;letter-spacing:.1em;color:var(--primary);}
+  .journey h2{font-size:19px;letter-spacing:-.02em;margin-top:5px;}.journey-head p{font-size:11px;line-height:1.5;color:var(--t3);margin-top:5px;}
+  .journey-badge{flex-shrink:0;border-radius:10px;background:#EEF0FF;padding:6px 8px;color:var(--primary);font-size:10px;font-weight:800;}
+  .journey-list{list-style:none;position:relative;padding:0;margin:0;}
+  .journey-list:before{content:"";position:absolute;left:11px;top:14px;bottom:14px;width:1px;background:#DCE1F5;}
+  .journey-step{display:flex;gap:12px;position:relative;padding:0 0 11px;border:0;background:none;text-align:left;width:100%;font-family:inherit;cursor:pointer;color:var(--t3);}
+  .journey-step:last-child{padding-bottom:2px;}
+  .journey-step .dot{z-index:1;width:23px;height:23px;flex:0 0 23px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#F3F5FC;border:1px solid #DCE1F5;color:#7A83A8;font-size:10px;font-weight:800;transition:.18s;}
+  .journey-step .stage{padding-top:3px;font-size:12px;font-weight:750;line-height:1.3;}.journey-step .brief{display:none;font-size:10.5px;line-height:1.45;margin-top:3px;color:var(--t3);}
+  .journey-step.active .dot{background:var(--primary);border-color:var(--primary);color:#fff;box-shadow:0 4px 10px rgba(91,108,255,.26);}.journey-step.active .stage{color:var(--t1);}.journey-step.active .brief{display:block;}
+  .journey-detail{border-top:1px solid var(--line);margin-top:14px;padding-top:15px;animation:journeyIn .22s ease;}.journey-detail .label{font-size:10px;font-weight:800;letter-spacing:.08em;color:var(--primary);}.journey-detail h3{font-size:16px;margin:5px 0 8px;}.journey-detail p{font-size:12px;line-height:1.6;color:var(--t3);}.journey-detail strong{color:var(--t1);}
+  @keyframes journeyIn{from{opacity:.45;transform:translateY(3px)}to{opacity:1;transform:none}}
+  @media (max-width:900px){.journey{display:none}.demo-shell{padding:0}.phone{box-shadow:none}}
+  @media (prefers-reduced-motion:reduce){.journey-detail,.journey-step .dot{animation:none;transition:none}}
+  .demo-controls{position:fixed;right:16px;top:16px;z-index:80;}
+  .demo-controls label{display:block;width:32px;height:18px;cursor:pointer;}
+  .demo-controls input{position:absolute;opacity:0;width:32px;height:18px;margin:0;cursor:pointer;}
+  .demo-switch-track{display:block;width:32px;height:18px;border-radius:12px;background:#D5D9E6;transition:.15s;pointer-events:none;}
+  .demo-switch-track:after{content:"";display:block;position:relative;top:3px;left:3px;width:12px;height:12px;border-radius:50%;background:#fff;transition:.15s;}
+  .demo-controls input:checked+.demo-switch-track{background:var(--primary);}.demo-controls input:checked+.demo-switch-track:after{transform:translateX(14px);}
+  .demo-controls input:focus-visible+.demo-switch-track{outline:2px solid var(--primary);outline-offset:3px;}
+  .photo-source-menu{display:grid;gap:8px;margin:16px 0;}.photo-source-menu button{border:0;border-radius:14px;background:#F4F6FF;padding:14px;text-align:left;color:var(--t1);font:600 14px inherit;cursor:pointer;}
+  .photo-picks{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:16px 0;}.photo-picks button{height:96px;border:1px solid #D6E4FF;border-radius:14px;background:linear-gradient(145deg,#E9EFFF,#F5F9FF);color:var(--primary);font:12px inherit;cursor:pointer;}
+  .camera-preview{margin:16px 0;height:180px;border-radius:16px;background:#EEF0FF;display:flex;align-items:center;justify-content:center;color:var(--primary);font-size:14px;}
+  .visit-submit{flex-shrink:0;padding:8px 0 4px;}
+  .visit-submit .cta{display:block;width:100%;height:48px;border-radius:24px;font-size:15px;margin:0;}
+  .visit-submit .cta:disabled{opacity:.5;cursor:default;}
+  .visit-save-note{text-align:center;font-size:11px;color:var(--t4);margin:0 0 8px;}
+
+.onsite-separated .capture-heading{font-size:15px;margin:10px 0 8px;color:var(--t1)}.onsite-separated .cabinet-card{padding:11px 12px;margin:0}.cabinet-title{display:flex;justify-content:space-between;align-items:center;font-size:12px}.cabinet-title span{background:#fff1ed;color:var(--warn);padding:2px 5px;border-radius:5px;font-size:9px}.cabinet-card p{color:#8a93b0;font-size:10px;margin:6px 0 8px}.onsite-separated .photos{margin:0;gap:8px}.onsite-separated .ph{width:66px;height:66px;border-radius:12px}.onsite-separated .ph.add{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:3px;border:1px dashed #bdc7ff;background:#f7f8ff;font-size:9px}.ph.add b{font-size:24px}.cabinet-shot{display:flex;align-items:center;justify-content:center;height:100%;background:#eff2fc;color:#6376c7;font-size:36px}.photo-caption{position:absolute;bottom:4px;left:4px;font-size:8px;color:#8b96b1;background:#ffffffdc;border-radius:4px;padding:1px 3px}.onsite-separated .communication-card{padding:0;overflow:hidden;margin:0 0 8px}.communication-card .ask-row{padding:10px 14px}.communication-card .asr-peek{width:calc(100% - 28px);margin:8px 14px 10px;font-size:11px}.communication-voice{display:flex;flex-direction:column;align-items:center;gap:8px;padding:13px 14px 15px;border-top:1px solid var(--line);background:#f7f8ff}.communication-voice .visit-hint{margin:0}.communication-voice small{color:#8a93b0;font-size:10px}.communication-voice .mic-fab{width:58px;height:58px}.onsite-separated .visit-submit{display:flex;gap:10px;padding-top:10px}.onsite-separated .visit-submit .cta{flex:1;height:46px;margin:0}.onsite-separated .visit-submit .ghost{flex:0 0 92px;background:#eef0ff;border:1px solid #dce1ff;color:var(--primary)}
+.onsite-separated .capture-photo-hint{font-size:10px;line-height:1.5;color:#8a93b0;margin:-3px 0 8px}</style>
+</head>
+<body>
+<main class="demo-shell">
+<div class="phone">
+  <div class="page" id="p-fight"></div>
+  <div class="page hidden" id="p-stores"></div>
+  <div class="page hidden" id="p-visit"></div>
+  <div class="page hidden" id="p-cases"></div>
+  <div class="page hidden" id="p-collab"></div>
+  <div class="page hidden" id="p-me"></div>
+  <div class="sheet hidden" id="sheet"></div>
+  <div class="overlay hidden" id="overlay"></div>
+  <nav class="tabbar">
+    <button class="tab on" data-tab="fight"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>今日作战</button>
+    <button class="tab" data-tab="stores"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="2"/><path d="M12 8v4l3 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>门店360</button>
+    <button class="tab" data-tab="cases"><svg viewBox="0 0 24 24" fill="none"><path d="M6 4h12v16H6z" stroke="currentColor" stroke-width="2"/><path d="M9 9h6M9 13h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>金牌案例</button>
+    <button class="tab" data-tab="collab"><svg viewBox="0 0 24 24" fill="none"><path d="M8 7h13M8 12h13M8 17h13M4 7h.01M4 12h.01M4 17h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>协同</button>
+    <button class="tab" data-tab="me"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.2" stroke="currentColor" stroke-width="2"/><path d="M5 19c1.4-3 4-4.5 7-4.5S17.6 16 19 19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>我的</button>
+  </nav>
+  <div class="toast" id="toast"></div>
+</div>
+<section class="demo-controls" aria-label="相机权限演示控制">
+  <label title="相机权限演示：开启后模拟未授权；关闭后模拟已授权">
+    <input id="cameraPermissionDemo" type="checkbox" role="switch" aria-label="相机权限演示">
+    <span class="demo-switch-track" aria-hidden="true"></span>
+  </label>
+</section>
+<aside class="journey" aria-label="督导用户旅程图">
+  <div class="journey-head"><div><div class="journey-kicker">DEMO STORYLINE</div><h2>督导的一天</h2><p>点阶段可跳转；随工作台页面同步高亮。</p></div><span class="journey-badge">共性场景</span></div>
+  <ol class="journey-list" id="journeySteps"></ol>
+  <section class="journey-detail" id="journeyDetail" aria-live="polite"></section>
+</aside>
+</main>
+<script>
+const KEY="supervisor-workbench-v1";
+const CHIPS=[
+  {id:"seen",g:"现场",t:"见到决策人"},{id:"away",g:"现场",t:"店主不在"},{id:"staff",g:"现场",t:"只见到店员"},
+  {id:"intent",g:"进货",t:"有进货意向"},{id:"credit",g:"进货",t:"额度不足卡单"},{id:"price",g:"进货",t:"竞品价低未谈拢"},
+  {id:"demo",g:"进货",t:"等样机再定"},{id:"rel",g:"进货",t:"关系铺垫未成交"},
+  {id:"stock",g:"问题",t:"Pova缺货"},{id:"pop",g:"问题",t:"物料不足"},{id:"disp",g:"问题",t:"陈列被挤"},
+  {id:"svc",g:"问题",t:"售后配件投诉"},{id:"train",g:"问题",t:"店员要培训"}
+];
+const OWNERS=["区域经理 Luis","BD Camila","售后协调员 Rosa","培训师 Diego","我自己跟进"];
+const STORES=[
+  {id:"s1",rank:"S",lastVisit:18,name:"Celulares El Dorado",area:"Chapinero",owner:"Carlos",role:"店主",att:"观望",
+    c:{total:80,used:76,avail:4,last:"09-08",next:"09-25",text:"可授信额度为 2,000 万比索，已使用 1,900 万比索，剩余可用额度为 100 万比索。上次还款记录为 09-08，预计下次还款时间为 09-25。",src:"二级 Distribuidora Norte · 销售 Pablo",kind:"二级口述",at:"2026-09-21 16:40",stale:true},
+    inv:"Pova 断货 3 天，NOTE 库存约 12 天",comp:"三星返利冲量",left:"正面陈列谈了一周未落地",
+    hist:[{d:"09-18",t:"关系铺垫，未见到店主"},{d:"09-12",t:"补货 20 台 NOTE"}]},
+  {id:"s2",rank:"S",lastVisit:21,name:"Tecno Store Centro",area:"Chapinero",owner:"Sofia",role:"店长",att:"忠诚",
+    c:{total:60,used:28,avail:32,last:"09-20",next:"10-05",text:"可授信额度为 1,500 万比索，已使用 700 万比索，剩余可用额度为 800 万比索。上次还款记录为 09-20，预计下次还款时间为 10-05。",src:"BD Camila 与二级对账",kind:"BD确认",at:"2026-09-22 09:10",stale:false},
+    inv:"Spark Go 走量，样机 3 台在位",comp:"无强活动",left:"新店建档还缺竞品占比",
+    hist:[{d:"09-21",t:"首访，店员 2 人"}]},
+  {id:"s3",rank:"A",lastVisit:15,name:"Distribuidora Norte",area:"Av. Caracas",owner:"Miguel",role:"店主",att:"抗拒",
+    c:{total:120,used:120,avail:0,last:"08-30",next:"09-24",text:"可授信额度为 3,000 万比索，已使用 3,000 万比索，剩余可用额度为 0 万比索。上次还款记录为 08-30，预计下次还款时间为 09-24。",src:"二级账本拍照 · 督导 Ana",kind:"督导采集",at:"2026-09-20 18:05",stale:true},
+    inv:"额度用满，本月未再下单",comp:"竞品给更长账期",left:"保修单 2 张未闭环",
+    hist:[{d:"09-15",t:"谈额度刷新，未成交"}]},
+  {id:"s4",rank:"B",lastVisit:19,name:"Phone House 57",area:"Chapinero",owner:"Elena",role:"店主",att:"观望",
+    c:{total:40,used:18,avail:22,last:"09-19",next:"10-02",text:"可授信额度为 1,000 万比索，已使用 450 万比索，剩余可用额度为 550 万比索。上次还款记录为 09-19，预计下次还款时间为 10-02。",src:"渠道经理周会同步",kind:"渠道例会",at:"2026-09-22 11:00",stale:false},
+    inv:"HOT 慢销 8 台",comp:"低价机冲击入门段",left:"要一场周末激活",
+    hist:[{d:"09-19",t:"承诺帮消化慢销"}]},
+  {id:"s5",rank:"S",lastVisit:0,name:"Movil Express Kennedy",area:"Kennedy",owner:"Andrés",role:"店主",att:"观望",
+    c:{total:70,used:42,avail:28,last:"08-29",next:"09-23",text:"可授信额度为 1,750 万比索，已使用 1,050 万比索，剩余可用额度为 700 万比索。上次还款记录为 08-29，预计下次还款时间为 09-23。",src:"BD 周会同步",kind:"BD确认",at:"2026-09-22 08:30",stale:false},
+    inv:"NOTE 库存约 9 天",comp:"竞品新品刚进场",left:"22 天未访，确认新品试单意愿",
+    hist:[{d:"08-31",t:"店主出差，约回访"}]},
+  {id:"s6",rank:"C",lastVisit:5,name:"Kiosko San Martín",area:"Centro",owner:"Marta",role:"店主",att:"保守",
+    c:{total:20,used:12,avail:8,last:"09-02",next:"09-26",text:"可授信额度为 500 万比索，已使用 300 万比索，剩余可用额度为 200 万比索。上次还款记录为 09-02，预计下次还款时间为 09-26。",src:"渠道例会",kind:"渠道例会",at:"2026-09-21 17:20",stale:true},
+    inv:"入门机慢销 4 台",comp:"低价机持续促销",left:"17 天未访，确认是否需要价格支持",
+    hist:[{d:"09-05",t:"询问入门机价格政策"}]},
+  {id:"s7",rank:"A",lastVisit:14,name:"SuperCel Usaquén",area:"Usaquén",owner:"Laura",role:"店长",att:"忠诚",
+    c:{total:90,used:54,avail:36,last:"09-18",next:"10-03",text:"可授信额度为 2,250 万比索，已使用 1,350 万比索，剩余可用额度为 900 万比索。上次还款记录为 09-18，预计下次还款时间为 10-03。",src:"BD 对账",kind:"BD确认",at:"2026-09-22 10:20",stale:false},
+    inv:"NOTE 走量，样机 2 台在位",comp:"周末竞品地推",left:"确认周末促销是否跟进",
+    hist:[{d:"09-14",t:"店员培训已约"}]},
+  {id:"s8",rank:"B",lastVisit:6,name:"Outlet Calle 80",area:"Engativá",owner:"Diego",role:"店主",att:"观望",
+    c:{total:35,used:20,avail:15,last:"09-10",next:"09-28",text:"可授信额度为 875 万比索，已使用 500 万比索，剩余可用额度为 375 万比索。上次还款记录为 09-10，预计下次还款时间为 09-28。",src:"渠道例会",kind:"渠道例会",at:"2026-09-21 15:10",stale:false},
+    inv:"入门机慢销 6 台",comp:"低价机持续促销",left:"16 天未访，入门段被低价机打",
+    hist:[{d:"09-06",t:"询问价格政策"}]},
+  {id:"s9",rank:"C",lastVisit:19,name:"Mini Shop Suba",area:"Suba",owner:"Rosa",role:"店主",att:"保守",
+    c:{total:15,used:6,avail:9,last:"09-16",next:"10-08",text:"可授信额度为 375 万比索，已使用 150 万比索，剩余可用额度为 225 万比索。上次还款记录为 09-16，预计下次还款时间为 10-08。",src:"渠道例会",kind:"渠道例会",at:"2026-09-22 09:40",stale:false},
+    inv:"库存周转正常",comp:"无强活动",left:"近期无紧急事项，可顺路再看",
+    hist:[{d:"09-19",t:"常规巡访，无异常"}]}
+];
+const SEED_TICKETS=[
+  {id:"t1",type:"资源",store:"s1",title:"申请 NOTE 堆头物料",owner:"区域经理 Luis",due:"09-24",status:"跟进中",ev:"已建需求单"},
+  {id:"t2",type:"价格",store:"s3",title:"对等三星返利的促销授权",owner:"BD Camila",due:"09-23",status:"待处理",ev:""},
+  {id:"t3",type:"售后",store:"s3",title:"两张保修单催配件",owner:"售后协调员 Rosa",due:"09-22",status:"跟进中",ev:"已催仓"},
+  {id:"t4",type:"培训",store:"s2",title:"新店店员主推话术培训",owner:"培训师 Diego",due:"09-26",status:"待处理",ev:""},
+  {id:"t5",type:"报销",store:"s1",title:"交通出行报销 · COP 48,000",owner:"我自己跟进",due:"09-25",status:"待处理",ev:"票据待确认"}
+];
+function load(){
+  try{
+    const s=JSON.parse(localStorage.getItem(KEY)||"null");
+    if(s) return Object.assign({offline:false,q:"",sf:"重点",sr:"重点",sft:"待巡店",sz:"全部",sa:"全部",sg:"全部",ss:false,fz:"全部",fa:"全部",fg:"全部",fq:"",cf:"全部",mp:"业绩",mc:"全部",homeFilter:"全部",recPage:0,voiceFlow:"idle",voiceFrom:"fight",voiceTopic:"visit",voiceHadResult:false,askMode:"voice",visit:{step:1,storeId:"",chips:[],photos:[],note:""},tickets:SEED_TICKETS.slice(),tasks:[],visits:[],expenses:[],queue:0,reporting:{},visitPacks:{},storeMore:false},s,{voiceFlow:"idle",askMode:"voice"});
+  }catch(e){}
+  return {offline:false,q:"",sf:"重点",sr:"重点",sft:"待巡店",sz:"全部",sa:"全部",sg:"全部",ss:false,fz:"全部",fa:"全部",fg:"全部",fq:"",cf:"全部",mp:"业绩",mc:"全部",homeFilter:"全部",recPage:0,voiceFlow:"idle",voiceFrom:"fight",voiceTopic:"visit",voiceHadResult:false,askMode:"voice",visit:{step:1,storeId:"",chips:[],photos:[],note:""},tickets:SEED_TICKETS.slice(),tasks:[],visits:[],expenses:[],queue:0,reporting:{},visitPacks:{},storeMore:false};
+}
+let S=load();
+const $=id=>document.getElementById(id);
+const store=id=>STORES.find(x=>x.id===id);
+const JOURNEY=[
+  {id:1,tab:"fight",title:"晨间判断",brief:"看数据、异常与支持动态",scene:"先判断哪些客户值得投入时间；账期、库存和团队异常往往散在群消息、电话与个人笔记里。",design:"首页先给出机会和风险，而不是要求督导先填报。"},
+  {id:2,tab:"fight",title:"排定拜访",brief:"按机会排，而非固定路线",scene:"督导会综合拿货量、距上次下单时间、客户状态和紧急事项调整当天顺序。",design:"用“首要行动 + 成交信号”说明今天为什么先去这家店。"},
+  {id:3,tab:"stores",title:"拜访前准备",brief:"补齐客情、库存与遗留",scene:"出发前需要回忆上次承诺、库存、竞品动作和客户采购资格，不能靠记忆拼凑。",design:"门店 360 集中展示额度来源、更新时间、经营快照和历史拜访。"},
+  {id:4,tab:"visit",title:"现场经营",brief:"关系、观察与快速采集",scene:"督导在店内先建立关系，再观察陈列、库存、动销、竞品和人员状态；决策人可能不在场。",design:"签到后以勾选、照片和短备注快速留痕，弱网不丢记录。"},
+  {id:5,tab:"visit",title:"谈判与行动",brief:"成交、铺垫或预约下一次",scene:"没成交可能是额度、价格、样机、资源或信任问题；一次关系铺垫同样有价值。",design:"结构化记录阻碍，并自动生成“谁在何时做什么”的下一步。"},
+  {id:6,tab:"collab",title:"协同与追单",brief:"资源要有负责人和时限",scene:"物料、样机、价格、售后与培训能否到位，决定很多机会是否真正转化。",design:"协同事项明确负责人、截止时间、状态与完成证据，避免停留在群消息。"},
+  {id:7,tab:"fight",title:"收尾复盘",brief:"让今天沉淀为明天上下文",scene:"督导需要汇总机会、风险、未成交原因和待办；报销等行政事项也不应占用整段外勤时间。",design:"记录与协同回流首页；票据拍照后自动形成报销草稿，待空闲时确认提交。"}
+];
+let journeyStage=2;
+function renderJourney(stageId){
+  const current=JOURNEY.find(x=>x.id===stageId)||JOURNEY[1];
+  const list=$("journeySteps"), detail=$("journeyDetail");
+  if(!list||!detail) return;
+  list.innerHTML=JOURNEY.map(x=>`<li><button class="journey-step ${x.id===current.id?"active":""}" data-journey="${x.id}"><span class="dot">${x.id}</span><span><span class="stage">${x.title}</span><span class="brief">${x.brief}</span></span></button></li>`).join("");
+  detail.innerHTML=`<div class="label">当前讲解 · ${String(current.id).padStart(2,"0")}</div><h3>${current.title}</h3><p><strong>真实场景：</strong>${current.scene}</p><p style="margin-top:7px"><strong>界面如何承接：</strong>${current.design}</p>`;
+  list.querySelectorAll("[data-journey]").forEach(b=>b.onclick=()=>{const x=JOURNEY.find(v=>v.id===+b.dataset.journey); if(x) showTab(x.tab,x.id);});
+}
+function visitDate(){ return new Date().toLocaleDateString("sv-SE",{timeZone:"Asia/Shanghai"}); }
+function submittedVisit(id,date){
+  return (S.visits||[]).find(v=>v.storeId===id&&!(v.chips||[]).includes("语音沟通")&&(v.visitDate===date||(!v.visitDate&&String(v.time||"").startsWith(date.slice(5)))));
+}
+function visitContent(st){
+  const sorted=o=>Object.fromEntries(Object.entries(o||{}).sort(([a],[b])=>a.localeCompare(b)));
+  return JSON.stringify({text:String(st.asr!=null?st.asr:st.note||"").trim(),photos:st.photos||[],asked:sorted(st.asked),answers:sorted(st.answers),chips:(st.chips||[]).slice().sort()});
+}
+function committedContent(id,kind,date){
+  const record=kind==="phone"?phoneRecord(id,date):submittedVisit(id,date);
+  if(!record)return null;
+  if(record.contentSnapshot)return record.contentSnapshot;
+  const packs=kind==="phone"?S.phoneVisitPacks:S.visitPacks;
+  const pack=packs&&packs[id]||{};
+  return visitContent({asr:record.note||"",photos:record.photoData||[],asked:record.asked||pack.asked,answers:record.answers||pack.answers,chips:pack.chips||[]});
+}
+function draftForStore(id){
+  const drafts=[S.visitDrafts&&S.visitDrafts[id],S.phoneVisitDrafts&&S.phoneVisitDrafts[id]].filter(draft=>{
+    if(!draft)return false;
+    const kind=draft.kind||"onsite", committed=committedContent(id,kind,draft.visitDate||visitDate());
+    return visitHasData(draft)&&(!committed||visitContent(draft)!==committed);
+  });
+  return drafts.sort((a,b)=>(b.savedAt||0)-(a.savedAt||0))[0];
+}
+function phoneRecord(id,date){return (S.phoneVisits||[]).find(v=>v.storeId===id&&v.visitDate===date);}
+function snapshotVisit(){
+  const st=S.visit; if(!st||st.step!==2||!st.storeId) return;
+  const ta=$("asrEdit"); if(ta){st.asr=ta.value;st.note=ta.value;}
+  const draft=JSON.parse(JSON.stringify(st));
+  if(st.listening){draft.asr=[st.asrBase,st.asrLive].filter(Boolean).join("\n");draft.note=draft.asr;}
+  draft.listening=false;draft.editing=false;draft.asrLive=draft.asr||"";draft.asrBase="";
+  draft.visitDate=draft.visitDate||visitDate();draft.startedAt=draft.startedAt||now();
+  draft.savedAt=Date.now();
+  const key=st.kind==="phone"?"phoneVisitDrafts":"visitDrafts";S[key]=S[key]||{};
+  const baseline=committedContent(st.storeId,st.kind,draft.visitDate);
+  if(!visitHasData(draft)||(baseline&&visitContent(draft)===baseline)){delete S[key][st.storeId];return;}
+  S[key][st.storeId]=draft;
+}
+
+function save(){ snapshotVisit(); localStorage.setItem(KEY, JSON.stringify(S)); }
+function toast(m){ const t=$("toast"); t.textContent=m; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),1600); }
+function now(){ const d=new Date(); return `${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`; }
+function persist(msg){
+  if(S.offline){ S.queue++; save(); toast("弱网 · 已写入本地，待同步"); return; }
+  save(); toast(msg||"已保存");
+}
+function banner(){
+  if(S.offline) return `<div class="banner show">弱网：操作只写本地 <button class="link" data-act="online">切回在线</button></div>`;
+  if(S.queue) return `<div class="banner show ok">在线 · ${S.queue} 条待同步 <button class="link" data-act="sync">立即同步</button></div>`;
+  return "";
+}
+const CASE_TOPICS=["price","stock","order"];
+const VOICE_QA={
+  visit:{q:"今天我应该先拜访谁？",a:"建议先去 22 天未访的 Movil Express Kennedy。它是 S 级，有新品试单窗口；然后补 Distribuidora Norte 的两张保修单。",follows:[{t:"打开 Kennedy 门店详情",store:"s5"},{t:"哪家店额度还能进货？",topic:"credit"},{t:"本月激励还差多少？",topic:"earn"}]},
+  credit:{q:"哪家店额度还能进货？",a:"Tecno Store Centro 可用 32 台、Phone House 57 可用 22 台，额度都是当天已更新。El Dorado 只剩 4 台，来源还是二级口述，建议先复核再压货。",follows:[{t:"打开 Centro 看账期",store:"s2"},{t:"今天我应该先拜访谁？",topic:"visit"},{t:"本月激励还差多少？",topic:"earn"}]},
+  earn:{q:"本月激励还差多少？",a:"本月已赚 COP 2.34M，完成率 79.5%。再消化 880 台可以拿满月度超额，今天已经贡献 +86K。",follows:[{t:"查看激励明细",act:"goalincentive"},{t:"今天我应该先拜访谁？",topic:"visit"},{t:"哪家店额度还能进货？",topic:"credit"}]},
+  price:{q:"客户说竞品更便宜怎么办？",a:"先别对单台进货价。用稳定价盘、单台利润和“陪同消化库存”替代单纯压价。El Dorado 最近就是这个卡点。",follows:[{t:"查看完整话术",act:"case"},{t:"慢销库存怎么消化？",topic:"stock"},{t:"带着方案去看门店",tab:"stores"}]},
+  stock:{q:"慢销库存怎么消化？",a:"用周末激活、店员激励和物料组合，而不是再压货。Phone House 57 有 8 台 HOT 慢销，适合先做一场店头活动。",follows:[{t:"查看库存案例",act:"case"},{t:"打开 Phone House 57",store:"s4"},{t:"客户迟迟不下单怎么办？",topic:"order"}]},
+  order:{q:"客户迟迟不下单怎么办？",a:"先分清是额度、信任还是决策人不在。Norte 额度用满、El Dorado 来源过期，都不是话术能单独解决的，要同步协同。",follows:[{t:"查看谈判案例",act:"case"},{t:"去协同跟进额度",tab:"collab"},{t:"客户说竞品更便宜怎么办？",topic:"price"}]}
+};
+function isCaseVoice(){ return S.voiceFrom==="cases" || CASE_TOPICS.includes(S.voiceTopic); }
+function redrawVoice(){ isCaseVoice()?renderCases():renderFight(); }
+function voiceDots(){ return Array.from({length:26},()=>"<i></i>").join(""); }
+function bindWaveHold(autoSend){
+  const bar=$("waveBar"), hint=$("recHint");
+  if(!bar) return;
+  let sent=false;
+  const finish=ok=>{
+    if(sent) return; sent=true;
+    if(ok){ S.voiceHadResult=true; S.voiceFlow="result"; }
+    else { S.voiceFlow=S.voiceHadResult?"result":"idle"; }
+    save(); redrawVoice();
+  };
+  if(autoSend) setTimeout(()=>finish(true),1400);
+  bar.onpointerdown=e=>{
+    e.preventDefault();
+    sent=false;
+    S.voiceFlow="listening";
+    bar.classList.add("on"); bar.classList.remove("cancel");
+    if(hint){ hint.textContent="松开发送，上滑取消"; hint.classList.remove("cancel"); }
+    let y=e.clientY, cancel=false;
+    const move=ev=>{
+      cancel=y-ev.clientY>52;
+      bar.classList.toggle("cancel",cancel);
+      if(hint){ hint.textContent=cancel?"松开取消":"松开发送，上滑取消"; hint.classList.toggle("cancel",cancel); }
+    };
+    const up=()=>{
+      window.removeEventListener("pointermove",move);
+      window.removeEventListener("pointerup",up);
+      finish(!cancel);
+    };
+    window.addEventListener("pointermove",move);
+    window.addEventListener("pointerup",up);
+  };
+}
+function micSvg(){ return `<svg viewBox="0 0 24 24" fill="none"><rect x="9" y="3" width="6" height="11" rx="3" fill="#fff"/><path d="M7 11a5 5 0 0 0 10 0" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/><path d="M12 16v3M9 19h6" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>`; }
+function kbSvg(){ return `<svg viewBox="0 0 24 24" fill="none"><rect x="3" y="6" width="18" height="12" rx="2.5" stroke="currentColor" stroke-width="1.8"/><path d="M7 10h.01M11 10h.01M15 10h.01M8.5 14h7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>`; }
+function voiceComposer(micAct, inputId, sendAct, ph){
+  if(S.askMode==="text"){
+    return `<div class="voice-tools text"><button class="mic-fab" data-act="askvoice" aria-label="改回语音">${micSvg()}</button><div class="ask-field"><input id="${inputId}" type="text" enterkeyhint="send" placeholder="${ph}" autocomplete="off"><button type="button" class="ask-send" data-act="${sendAct}" aria-label="发送"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h12M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></div>`;
+  }
+  return `<div class="voice-tools"><div class="voice-main"><button class="mic-fab" data-act="${micAct}" aria-label="按住说话">${micSvg()}</button><span class="voice-cap">按住说话</span></div><button class="kb-fab" data-act="asktype" aria-label="键盘输入">${kbSvg()}</button></div>`;
+}
+function redrawAskDock(){
+  if($("p-cases")&&!$("p-cases").classList.contains("hidden")) renderCases();
+  else renderFight();
+}
+function bindAskField(id){
+  const inp=$(id); if(!inp) return;
+  inp.onkeydown=e=>{ if(e.key==="Enter"){ e.preventDefault(); const send=inp.parentElement.querySelector("[data-act]"); if(send) send.click(); } };
+  if(S.askMode==="text") setTimeout(()=>inp.focus(),0);
+}
+function sendTypedAsk(from,q){
+  q=(q||"").trim();
+  if(!q){ toast("输入问题后再发送"); return; }
+  if(from==="cases"){
+    S.voiceFrom="cases";
+    S.voiceTopic=/库存|慢销|消化/.test(q)?"stock":/下单|额度|决策/.test(q)?"order":"price";
+  }else{
+    S.voiceFrom="fight";
+    S.voiceTopic=/额度|进货|账期/.test(q)?"credit":/激励|赚|提成/.test(q)?"earn":"visit";
+  }
+  S.askMode="voice"; S.voiceHadResult=true; S.voiceFlow="result"; save();
+  from==="cases"?renderCases():renderFight();
+}
+function renderVoiceRoom(){
+  const fromCases=isCaseVoice();
+  const qa=VOICE_QA[S.voiceTopic]||(fromCases?VOICE_QA.price:VOICE_QA.visit);
+  const listening=S.voiceFlow==="listening";
+  const showChat=S.voiceHadResult||S.voiceFlow==="result";
+  const asks=fromCases
+    ?[{topic:"price",t:"客户说竞品更便宜怎么办？"},{topic:"stock",t:"慢销库存怎么消化？"},{topic:"order",t:"客户迟迟不下单怎么办？"}]
+    :[{topic:"visit",t:"今天我应该先拜访谁？"},{topic:"credit",t:"哪家店额度还能进货？"},{topic:"earn",t:"本月激励还差多少？"}];
+  document.querySelector(".phone").classList.add("talking");
+  $(fromCases?"p-cases":"p-fight").innerHTML=`
+    <section class="voice-room" aria-label="语音对话">
+      <header class="v-head"><button class="v-back" data-act="voicecancel">‹</button><div class="v-who"><span class="v-ava">巡</span>小巡<em>${fromCases?"案例检索":"AI作战"}</em></div></header>
+      <div class="v-scroll">
+        ${asks.map(x=>`<button class="v-ask" data-voicetopic="${x.topic}">${x.t}<span>›</span></button>`).join("")}
+        ${showChat?`<div class="v-time">${now().slice(-5)}</div>
+          <div class="v-user"><b>${qa.q}</b></div>
+          <div class="v-bot">${qa.a}</div>
+          <div class="v-from">由小巡生成</div>
+          ${qa.follows.map(f=>`<button class="v-follow" ${f.store?`data-store="${f.store}"`:f.tab?`data-tab="${f.tab}"`:f.act?`data-act="${f.act}"`:`data-voicetopic="${f.topic}"`}>${f.t}<span>›</span></button>`).join("")}`:""}
+      </div>
+      <footer class="v-foot">
+        <div class="v-hint" id="recHint">${listening?"松开发送，上滑取消":"按住说话"}</div>
+        <button class="wave-bar ${listening?"on":""}" id="waveBar">${voiceDots()}</button>
+      </footer>
+    </section>`;
+  bindWaveHold(listening && !S.voiceHadResult);
+}
+function renderFight(){
+  const ranked=[...STORES].sort((a,b)=>a.lastVisit-b.lastVisit);
+  const pool=ranked.filter(s=>["S","A"].includes(s.rank));
+  const start=(S.recPage||0)%Math.max(pool.length,1);
+  const homeList=pool.slice(start).concat(pool.slice(0,start)).slice(0,3);
+  document.querySelector(".phone").classList.remove("talking");
+  if(S.voiceFlow!=="idle"){ renderVoiceRoom(); return; }
+  $("p-fight").innerHTML=`
+    <section class="recommend-home">
+      <section class="recommend-hero" aria-label="小巡今日推荐">
+        <div class="sales-brief">
+          <button class="sales-tile" data-act="goalsales"><span class="label">销售达成 <i>明细 ›</i></span><b>79.5%</b><small>3,420 / 4,300 台</small></button>
+          <button class="sales-tile" data-act="goalincentive"><span class="label">激励情况 <i>明细 ›</i></span><b>2.34M</b><small>今日 +86K · COP</small></button>
+        </div>
+        <div class="hi">Hi</div><h1>我是你的 AI 作战推荐官</h1><p>我会帮你判断今天先去谁、重点谈什么，以及要带什么资源。</p>
+        <div class="suggestions"><div class="suggest-head"><span>今日建议</span><button data-act="recommend">换一换</button></div>${homeList.map(s=>{const days=22-s.lastVisit, reason=s.left.replace(/^\d+ 天未访，/,"");return `<button class="suggestion" data-store="${s.id}"><span class="grade">${s.rank}</span><span class="txt">先去 ${s.name}<span class="detail">${days} 天未访 · ${reason}</span></span><span class="arrow">›</span></button>`;}).join("")}</div>
+      </section>
+      <section class="home-dock"><div class="dock-row"><div class="dock-head"><span>快速提问</span></div><div class="home-pills"><button data-act="history">我的访店</button><button data-act="goal">目标进度</button><button data-tab="collab">重点协同</button></div></div>${voiceComposer("voiceask","homeAsk","home-send","也可以打字问小巡")}</section>
+    </section>`;
+  bindAskField("homeAsk");
+}
+function storeStatus(s){
+  if((S.visits||[]).some(v=>v.storeId===s.id&&!(v.chips||[]).includes("语音沟通"))||(S.phoneVisits||[]).some(v=>v.storeId===s.id))return "已提交";
+  return "已更新";
+}
+function storeDays(s){ return 22-s.lastVisit; }
+function storeWhy(s){
+  const days=storeDays(s);
+  const left=(s.left||"").replace(/^\d+\s*天未访[，,]?/,"");
+  if(s.c.avail===0) return `额度用满 · ${left}`;
+  if(days>=15) return `${days} 天未访 · ${left}`;
+  return left||`${days} 天未访`;
+}
+function storeUrgent(s){
+  return storeReport(s)==="gaps"||storeDays(s)>=15||s.c.avail===0||/未闭环|未落地/.test(s.left||"");
+}
+function storePatrolled(s){
+  if(storeReport(s)||(S.visitPacks&&S.visitPacks[s.id])) return true;
+  return (S.visits||[]).some(v=>v.storeId===s.id&&!((v.chips||[]).includes("语音沟通")));
+}
+function storeScore(s){
+  return (storeReport(s)==="gaps"?90:0)+storeDays(s)*4+(s.c.avail===0?40:0)+(/未闭环|未落地|未访/.test(s.left||"")?30:0);
+}
+function storeTimeKey(s){
+  const vs=(S.visits||[]).filter(v=>v.storeId===s.id);
+  const last=vs.length&&vs[vs.length-1].time;
+  if(last){
+    const m=String(last).match(/(\d{1,2})-(\d{1,2})(?:\s+(\d{1,2}):(\d{1,2}))?/);
+    if(m) return Date.UTC(2026,+m[1]-1,+m[2],+(m[3]||20),+(m[4]||0));
+  }
+  return Date.UTC(2026,8,22)-storeDays(s)*86400000;
+}
+function storePhone(s){ return `+57 310 555 01${String(s.id.replace(/\D/g,"")).padStart(2,"0")}`; }
+const ZONE_OF={Chapinero:"北区",Usaquén:"北区",Suba:"北区","Av. Caracas":"中区",Centro:"中区",Engativá:"西区",Kennedy:"南区"};
+function storeZone(s){ return s.zone||ZONE_OF[s.area]||"中区"; }
+function storeGrade(s){ return s.rank==="S"?"A":s.rank; }
+function areasInZone(z){ return [...new Set(STORES.filter(s=>z==="全部"||storeZone(s)===z).map(s=>s.area))]; }
+function storeIcoChat(){ return `<svg viewBox="0 0 24 24" fill="none"><path d="M5 7.5A2.5 2.5 0 0 1 7.5 5h9A2.5 2.5 0 0 1 19 7.5v6A2.5 2.5 0 0 1 16.5 16H11l-3.6 2.7A.6.6 0 0 1 6.5 18V16H7.5A2.5 2.5 0 0 1 5 13.5v-6Z" stroke="currentColor" stroke-width="1.8"/></svg>`; }
+function storeIcoCall(){ return `<svg viewBox="0 0 24 24" fill="none"><path d="M7.2 5.8c.4-.4 1.1-.5 1.6-.2l2 1.2c.5.3.7.9.5 1.5l-.6 1.8a.9.9 0 0 0 .3 1c.8.7 1.8 1.6 2.6 2.4.3.3.8.3 1.1.1l1.7-.7c.5-.2 1.1 0 1.4.5l1.3 1.9c.3.5.2 1.2-.3 1.6l-1.2 1c-.5.4-1.2.6-1.8.4-2.7-.7-5.3-3.2-7.3-6.4-1.2-2-.8-3.7-.2-4.5l1.2-1.6Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>`; }
+function storeReport(s){ return (S.reporting&&S.reporting[s.id])||""; }
+function storeReporting(s){ return storeReport(s)==="generating"; }
+function storeGapList(s){
+  const pack=S.visitPacks&&S.visitPacks[s.id];
+  const asked=(pack&&pack.asked)||{};
+  return visitQuestions(s).filter(q=>!asked[q.id]);
+}
+function lastVisitStamp(s){
+  const vs=(S.visits||[]).filter(v=>v.storeId===s.id);
+  if(vs.length) return vs[vs.length-1].time;
+  return (s.hist&&s.hist[0]&&s.hist[0].d)||"—";
+}
+function storeRow(s){
+  const st=storeStatus(s), days=storeDays(s), phase=storeReport(s), busy=phase==="generating", gap=phase==="gaps", left=gap?storeGapList(s).length:0;
+  const draft=draftForStore(s.id);
+  const tag=draft?"未提交":busy?"AI报告生成中":gap?"待补全":st;
+  const tagCls=draft?"warn":busy?"":gap?"warn":"ok";
+  const showRep=!draft&&(!!storeReport(s)||!!(S.visitPacks&&S.visitPacks[s.id])||(S.visits||[]).some(v=>v.storeId===s.id&&!(v.chips||[]).includes("语音沟通")));
+  return `<article class="card so-card ${busy?"dim":""}${showRep?" patrolled":""}">
+    <div class="so-name">
+      <button data-store="${s.id}"><b><span class="grade-tag ${s.rank}">${storeGrade(s)}</span><span class="tk">${s.name}</span></b><div class="so-meta">${storeZone(s)} · ${s.area} · ${s.owner}</div></button>
+      <div class="so-acts"><button class="so-go" data-act="${draft?"continuedraft":"tovisit"}" data-call="${s.id}">${draft?"继续记录":"Go"}</button></div>
+    </div>
+    <div class="so-mini"><span>未访 <b>${days}天</b></span>${!draft&&gap?`<span>未问 <b>${left}</b></span>`:""}<span class="tag ${tagCls}">${tag}</span></div>
+    ${showRep?`<button type="button" class="so-report ${busy?"busy":""}" data-act="aireport" data-call="${s.id}"><span>AI 巡店报告</span><em>${busy?"生成中":gap?"有待补全 ›":"›"}</em></button>`:""}
+  </article>`;
+}
+function openAiReport(id, history){
+  const s=store(id); if(!s) return;
+  const phase=history?"":storeReport(s);
+  const pack=S.visitPacks&&S.visitPacks[s.id];
+  const qs=visitQuestions(s);
+  const asked=qs.filter(q=>pack&&pack.asked&&pack.asked[q.id]);
+  const shown=asked.length?asked:qs.slice(0,3);
+  const gaps=storeGapList(s);
+  const last=(S.visits||[]).filter(v=>v.storeId===s.id).slice(-1)[0];
+  const note=(history&&history.t)||(last&&last.note)||(shown[0]&&((pack&&pack.answers&&pack.answers[shown[0].id])||shown[0].ans))||s.left;
+  $("sheet").classList.remove("hidden");
+  $("sheet").innerHTML=phase==="generating"?`
+    <div class="nav"><button class="back" id="closeSheet" aria-label="返回">‹</button><h3 style="font-size:18px;font-weight:800">AI 巡店报告</h3></div>
+    <div class="card rp-sum">
+      <div class="rp-kicker">生成中</div>
+      <h1 style="font-size:20px;margin:8px 0 6px">${s.name}</h1>
+      <p>小巡正在整理现场采集，大约几秒后可查看结论。</p>
+    </div>`:`
+    <div class="nav"><button class="back" id="closeSheet" aria-label="返回">‹</button><h3 style="font-size:18px;font-weight:800">AI 巡店报告</h3></div>
+    <div class="st-title" style="margin-top:4px"><div class="grade-tag ${s.rank}">${storeGrade(s)}</div><h1>${s.name}</h1></div>
+    <div class="sub">${history?history.d:lastVisitStamp(s)} · ${storeZone(s)} · ${s.area} · ${s.owner}</div>
+    <div class="card rp-sum">
+      <div class="rp-kicker">${gaps.length?"部分完成":"巡店结论"}</div>
+      <p>${note}</p>
+      <div class="so-mini"><span>问到 <b>${asked.length||shown.length}/${qs.length}</b></span>${gaps.length?`<span>未问 <b>${gaps.length}</b></span>`:""}</div>
+    </div>
+    <div class="sec"><h2>现场采集</h2></div>
+    <div class="card">${shown.map(q=>`<div class="rp-item"><b>${q.t}</b><small>${(pack&&pack.answers&&pack.answers[q.id])||q.ans}</small></div>`).join("")}</div>
+    ${gaps.length?`<div class="sec"><h2>待补全</h2></div><div class="card">${gaps.map(q=>`<div class="rp-item"><b>${q.t}</b><small>${q.tip}</small></div>`).join("")}</div>`:""}
+    <div class="sec"><h2>下一步</h2></div>
+    <div class="card" style="padding:14px 16px;font-size:13px;line-height:1.65;color:#4C5678">${s.left}。额度来源 ${s.c.src}，请结合账期与额度记录沟通进货安排。</div>
+    ${gaps.length?`<button class="cta" style="margin-top:16px" data-visit="${s.id}">去补全</button>`:`<button class="cta ghost" style="margin-top:16px" data-store="${s.id}">查看门店详情</button>`}`;
+  $("closeSheet").onclick=()=>closeSheet();
+}
+function filterOn(){ return !!(S.q||(S.sz&&S.sz!=="全部")||(S.sa&&S.sa!=="全部")||(S.sg&&S.sg!=="全部")); }
+function filterStores(){
+
+  if(!["全部","北区","中区","西区","南区"].includes(S.sz)) S.sz="全部";
+  if(!["全部","A","B","C"].includes(S.sg)) S.sg="全部";
+  const areas=areasInZone(S.sz);
+  if(S.sa!=="全部"&&!areas.includes(S.sa)) S.sa="全部";
+  return STORES.filter(s=>{
+    const keyword=(S.q||"").trim().toLowerCase();
+    const q=!keyword||s.name.toLowerCase().includes(keyword);
+
+
+    return q&&(S.sz==="全部"||storeZone(s)===S.sz)&&(S.sa==="全部"||s.area===S.sa)&&(S.sg==="全部"||storeGrade(s)===S.sg);
+  }).sort((a,b)=>storeTimeKey(b)-storeTimeKey(a)||a.name.localeCompare(b.name));
+}
+function storeListHtml(list){
+  return list.map(storeRow).join("")||`<div class="empty">没有符合条件的门店</div>`;
+}
+function openStoreFilter(){
+  if(!S.fz) S.fz=S.sz||"全部";
+  if(!S.fa) S.fa=S.sa||"全部";
+  if(!S.fg) S.fg=S.sg||"全部";
+  if(S.fq==null) S.fq=S.q||"";
+  const areas=areasInZone(S.fz);
+  if(S.fa!=="全部"&&!areas.includes(S.fa)) S.fa="全部";
+  $("overlay").classList.remove("hidden");
+  $("overlay").innerHTML=`<div class="modal">
+    <h3>筛选门店</h3>
+
+    <div class="so-lab">区域</div>
+    <div class="chips">${["全部","北区","中区","西区","南区"].map(x=>`<button class="chip ${S.fz===x?"on":""}" data-fz="${x}">${x}</button>`).join("")}</div>
+    <div class="so-lab">商圈</div>
+    <div class="chips">${["全部"].concat(areas).map(x=>`<button class="chip ${S.fa===x?"on":""}" data-fa="${x}">${x}</button>`).join("")}</div>
+    <div class="so-lab">店铺等级</div>
+    <div class="chips" style="margin-bottom:16px">${["全部","A","B","C"].map(x=>`<button class="chip ${S.fg===x?"on":""}" data-fg="${x}">${x}</button>`).join("")}</div>
+    <div class="so-btns"><button class="cta ghost" data-act="filterreset">重置</button><button class="cta" data-act="filterdone">完成</button></div>
+  </div>`;
+  const inp=$("sq");
+  if(inp){ inp.focus(); inp.oninput=e=>{ S.fq=e.target.value; }; }
+}
+const STORE_PAGE_SIZE=20;
+let storeLoadTimer=null;
+function cancelStoreLoad(){ clearTimeout(storeLoadTimer); storeLoadTimer=null; }
+function storeResultsHtml(){
+  const list=filterStores();
+  const count=Math.max(1,S.storePage||1)*STORE_PAGE_SIZE;
+  const shown=list.slice(0,count);
+  return `${storeListHtml(shown)}${shown.length<list.length?`<div class="demo">共 ${list.length} 家门店 · 已显示 ${shown.length} 家</div><button type="button" class="cta ghost" data-act="storemore" style="margin:8px 0 16px">加载更多</button>`:list.length?`<div class="demo">已显示全部${list.length}家门店</div>`:""}`;
+}
+function renderStores(){
+  cancelStoreLoad();
+  const hot=!!((S.sz&&S.sz!=="全部")||(S.sa&&S.sa!=="全部")||(S.sg&&S.sg!=="全部"));
+  const page=$("p-stores");
+  page.classList.remove("fit7");
+  page.innerHTML=`${banner()}
+    <div class="so-head"><div><h1>门店360</h1><div class="sub">按最近巡店时间倒序查看</div></div>
+      <button class="so-search-btn ${hot?"hot":""}" data-act="storefilter" aria-label="筛选"><svg viewBox="0 0 24 24" fill="none"><path d="M4 6h16M7 12h10M10 18h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>${hot?"<i></i>":""}</button>
+    </div>
+    <div class="search"><span aria-hidden="true">⌕</span><input id="storeSearch" type="search" aria-label="搜索门店名称" placeholder="搜索门店名称" value="${escapeAsr(S.q).replace(/"/g,"&quot;")}" autocomplete="off" style="min-width:0;width:100%"></div>
+    <div id="storeResults">${storeResultsHtml()}</div>`;
+  $("storeSearch").oninput=e=>{
+    cancelStoreLoad(); S.q=e.target.value; S.storePage=1; save();
+    $("storeResults").innerHTML=storeResultsHtml();
+  };
+}
+function openStore(id){
+  const s=store(id); if(!s) return;
+
+  const extra=S.visits.filter(v=>v.storeId===s.id).map(v=>({d:v.time,t:v.note||v.chips.join(" / ")}));
+  $("sheet").classList.remove("hidden");
+  $("sheet").innerHTML=`
+    <div class="nav"><button class="back" id="closeSheet">‹</button><h3 style="font-size:18px;font-weight:800">门店详情</h3></div>
+    <div class="st-title"><div class="grade-tag ${s.rank}">${s.rank}</div><h1>${s.name}</h1></div>
+    <div class="sub">${storeZone(s)} · ${s.area} · ${s.role} ${s.owner} · ${s.att}</div>
+    <div class="card" style="padding:14px 16px;margin-top:16px">
+      <b>账期与额度</b>
+      <div style="margin-top:12px;font-size:13px;line-height:1.8;color:var(--t2);white-space:pre-wrap;overflow-wrap:anywhere">${escapeAsr(s.c.text||"暂无账期与额度记录")}</div>
+    </div>
+
+    <div class="card" style="padding:14px 16px;margin-top:12px;font-size:12.5px;line-height:1.65;color:#666">
+      <b style="color:#212121">本次检查与沟通</b><br>检查：${s.inv}、${s.comp}<br>待沟通：${s.left}
+    </div>
+    <div class="sec"><h2>历史拜访</h2></div>
+    <div class="card">${s.hist.concat(extra).map((v,i)=>`<div class="row"><div class="ico">📝</div><div class="bd"><div class="t">${v.d}</div><div class="s"><a href="#ai-report" class="link" data-act="historyreport" data-call="${s.id}" data-history="${i}">AI 巡店报告 ›</a></div></div></div>`).join("")}</div>
+    <div class="st-acts">
+      <button class="cta ghost" data-act="phonevisit" data-call="${s.id}">电话拜访</button>
+      <button class="cta" data-visit="${s.id}">到店打卡</button>
+    </div>`;
+  $("closeSheet").onclick=()=>{ $("sheet").classList.add("hidden"); $("sheet").innerHTML=""; };
+}
+const TODO_CONFIG_KEY="supervisor-todo-config-v1";
+function validateTodoConfig(value){
+  if(!value||!Array.isArray(value.onsite)||!Array.isArray(value.phone))return null;
+  const clean={};
+  for(const scene of ["onsite","phone"]){
+    if(value[scene].length>30)return null;
+    const ids=new Set();clean[scene]=[];
+    for(const q of value[scene]){
+      if(!q||typeof q.id!=="string"||!q.id||ids.has(q.id)||typeof q.t!=="string"||!q.t.trim()||q.t.length>50||typeof q.tip!=="string"||q.tip.length>160)return null;
+      ids.add(q.id);clean[scene].push({id:q.id,t:q.t.trim(),tip:q.tip,hot:!!q.hot,enabled:q.enabled!==false,chip:typeof q.chip==="string"?q.chip:""});
+    }
+    if(!clean[scene].some(q=>q.enabled))return null;
+  }
+  return clean;
+}
+function readTodoConfig(){
+  try{
+    if(location.hash.startsWith("#todo-demo=")){
+      const payload=JSON.parse(decodeURIComponent(location.hash.slice(11)));
+      const clean=validateTodoConfig(payload.config);
+      if(clean){localStorage.setItem(TODO_CONFIG_KEY,JSON.stringify(clean));window.todoPreviewScene=payload.scene==="phone"?"phone":"onsite";return clean;}
+    }
+    return validateTodoConfig(JSON.parse(localStorage.getItem(TODO_CONFIG_KEY)||"null"));
+  }catch(e){return null;}
+}
+let TODO_CONFIG=readTodoConfig();
+function visitQuestions(s,kind="onsite"){
+  const scene=kind==="phone"?"phone":"onsite";
+  if(TODO_CONFIG&&TODO_CONFIG[scene])return TODO_CONFIG[scene].filter(q=>q.enabled).map(q=>Object.assign({},q,{ans:q.id==="stock"&&s?s.inv:q.id==="compete"&&s?s.comp:q.tip||"已记录本项沟通情况"}));
+  if(!s) return [];
+  return [
+    {id:"display",chip:"disp",hot:true,t:"品牌陈列与露出",tip:"POP / 挂旗 / dummy / 样机、竞品占多少",ans:"主推位已核对，样机在位，竞品挂旗仍占一侧端架"},
+    {id:"stock",chip:"stock",hot:true,t:"库存与动销",tip:"分机型库存、慢销机型",ans:s.inv||"已核对分机型库存与慢销机"},
+    {id:"compete",chip:"price",hot:true,t:"竞品情况",tip:"品牌占比、价差、返利、灰市水货",ans:`${s.comp||"竞品动态已登记"}，价差和返利先记录，不现场承诺`},
+    {id:"train",chip:"train",t:"人员与培训",tip:"店员讲不讲得清卖点",ans:"店员能讲主推卖点，话术还要再练一轮"},
+    {id:"material",chip:"demo",t:"物料 / 样机是否到位",tip:"核对申请物料、dummy 和样机是否到店",ans:"样机在位，部分物料还缺，已登记跟进"},
+    {id:"trace",chip:"pop",t:"现场留痕",tip:"勾选 + 照片 + 语音，弱网先存",ans:"已用勾选、照片和语音留下记录，弱网先存在本地"}
+  ];
+}
+function visitPoint(){ return "4.6483° N, 74.0619° W"; }
+const ASR_CHUNKS=["主推位被竞品挂旗挤了一侧","，NOTE 分机型库存已核对，慢销先记下","，周末竞品地推价差和返利先登记","，不现场承诺。"];
+const ASR_MORE=["店员卖点还能再练一轮","，样机在位，物料照片和语音先存在本地。"];
+function freshVisit(step,storeId){
+  return {step:step||1,storeId:storeId||"",chips:[],photos:[],note:"",voiceIssue:"",point:step>=2?visitPoint():"",asked:{},answers:{},listening:false,asr:"",asrLive:"",ready:false,editing:false};
+}
+function resumeVisit(id,returnTo="detail",kind="onsite"){
+  const draft=kind==="phone"?S.phoneVisitDrafts&&S.phoneVisitDrafts[id]:S.visitDrafts&&S.visitDrafts[id];
+  if(draft){
+    S.visit=Object.assign(freshVisit(2,id),JSON.parse(JSON.stringify(draft)),{listening:false,editing:false,returnTo,kind});
+    S.visit.asr=String(draft.asr!=null?draft.asr:draft.note||draft.asrLive||"");
+    S.visit.note=S.visit.asr;S.visit.asrLive=S.visit.asr;
+    S.visit.photos=JSON.parse(JSON.stringify(draft.photos||[]));
+    save();return S.visit;
+  }
+  const date=visitDate(), existing=kind==="phone"?phoneRecord(id,date):submittedVisit(id,date);
+  const pack=existing&&(kind==="phone"?S.phoneVisitPacks&&S.phoneVisitPacks[id]:S.visitPacks&&S.visitPacks[id]);
+  const v=freshVisit(2,id);v.returnTo=returnTo;v.kind=kind;v.visitDate=date;v.startedAt=existing?existing.time:now();
+  if(pack){v.asked=Object.assign({},pack.asked||{});v.answers=Object.assign({},pack.answers||{});v.chips=(pack.chips||[]).slice();}
+  if(existing){v.asr=existing.note||"";v.note=v.asr;v.asrLive=v.asr;v.photos=(existing.photoData||[]).slice();}
+  S.visit=v;save();return v;
+}
+function saveVisitPack(s,st){
+  S.visitPacks=S.visitPacks||{};
+  S.visitPacks[s.id]={asked:Object.assign({},st.asked||{}),answers:Object.assign({},st.answers||{}),chips:(st.chips||[]).slice()};
+}
+const FULL_CAPTURE_DEMO_STORE="s2"; // Tecno Store Centro：固定一次完整录入演示
+function asrChunksFor(st){
+  if(st.storeId===FULL_CAPTURE_DEMO_STORE)return visitQuestions(store(st.storeId),st.kind).map(q=>`${q.t}：${q.ans}。`);
+  if(st.kind==="phone") return Object.keys(st.asked||{}).length<3?["已与店主电话沟通，确认主推产品陈列情况","，了解各机型库存与慢销情况","，店主反馈近期竞品促销较多，后续跟进价格与返利信息。"]:["已了解店员培训需求","，物料与样机到位情况待店主提供照片确认","，下次跟进确认沟通结果。"];
+  const left=visitQuestions(store(st.storeId),st.kind).filter(q=>!(st.asked||{})[q.id]);
+  if(left.length && left.every(q=>q.id==="train"||q.id==="material"||q.id==="trace")) return ASR_MORE;
+  return ASR_CHUNKS;
+}
+function storesOpen(){ return $("p-stores")&&!$("p-stores").classList.contains("hidden"); }
+function finishReport(id){
+  const s=store(id); if(!s) return;
+  S.visitPacks=S.visitPacks||{};
+  if(!S.visitPacks[id]){
+    const asked={}, answers={};
+    visitQuestions(s).slice(0,3).forEach(q=>{ asked[q.id]=true; answers[q.id]=q.ans; });
+    S.visitPacks[id]={asked,answers,chips:[]};
+  }
+  const left=storeGapList(s).length;
+  if(left){
+    S.reporting[id]="gaps";
+    persist(`报告已生成，还有 ${left} 项待补全`);
+  }else{
+    delete S.reporting[id];
+    persist("AI 报告已生成");
+  }
+  if(storesOpen()) renderStores();
+}
+function scheduleReport(id){
+  window._repT=window._repT||{};
+  clearTimeout(window._repT[id]);
+  window._repT[id]=setTimeout(()=>finishReport(id),2200);
+}
+function resumeReports(){
+  Object.keys(S.reporting||{}).forEach(id=>{
+    if(S.reporting[id]==="generating") scheduleReport(id);
+  });
+}
+function escapeAsr(text){ return String(text||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function paintAsr(){ const el=$("asrLive"); if(el) el.innerHTML=escapeAsr([S.visit.asrBase,S.visit.asrLive].filter(Boolean).join("\n"))||`<em>正在识别，预览生成结果…</em>`; }
+function bindAsrEdit(){
+  const ta=$("asrEdit"); if(!ta) return;
+  ta.oninput=()=>{ S.visit.asr=ta.value; S.visit.note=ta.value; save(); };
+  setTimeout(()=>{ ta.focus(); ta.setSelectionRange(ta.value.length,ta.value.length); },0);
+}
+function asrModalHtml(){
+  const st=S.visit||{};
+  const text=st.asrLive||st.asr||"";
+  return `<div class="modal asr-modal">
+    <div class="asr-top"><span class="asr-lab">识别结果</span>${st.editing?`<button class="link" data-act="asrdone">完成</button>`:`<button class="link" data-act="asredit">编辑</button>`}</div>
+    ${st.editing?`<textarea class="asr-edit" id="asrEdit" placeholder="核对或改写刚才识别的内容">${escapeAsr(st.asr)}</textarea>`:`<div class="asr-live" id="asrLive">${escapeAsr(text)||"<em>还没有识别到内容</em>"}</div>`}
+    <button type="button" class="cta ghost" id="asrContinue" style="margin:10px 0;font-size:13px;padding:8px 14px;touch-action:none" aria-label="按住继续录入">按住继续录入</button><div style="font-size:12px;color:var(--t3)">松开后追加到已有内容，可继续编辑</div>
+    <div class="asr-acts"><button class="cta ghost" data-act="asrclose">返回</button><button class="cta" data-act="asrclose">完成</button></div>
+  </div>`;
+}
+function openAsrModal(){
+  revealOverlay();
+  $("overlay").dataset.asr="1";
+  $("overlay").innerHTML=asrModalHtml();
+  bindAsrEdit(); bindVisitVoice("asrContinue");
+}
+function closeAsrModal(){
+  const ta=$("asrEdit");
+  if(ta&&S.visit){ S.visit.asr=ta.value.trim(); S.visit.note=S.visit.asr; S.visit.editing=false; save(); }
+  closeOverlay();
+  if($("p-visit")&&!$("p-visit").classList.contains("hidden")) renderVisit();
+}
+function visitMicSvg(on){
+  return on?`<svg viewBox="0 0 24 24" fill="none"><rect x="8" y="8" width="8" height="8" rx="2" fill="#fff"/></svg>`:`<svg viewBox="0 0 24 24" fill="none"><rect x="9" y="3" width="6" height="11" rx="3" fill="#fff"/><path d="M7 11a5 5 0 0 0 10 0" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/><path d="M12 16v3M9 19h6" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>`;
+}
+function startVisitVoice(){
+  const st=S.visit; if(!st||st.listening) return;
+  const submit=$("visitSubmit"); if(submit) submit.disabled=true;
+  clearInterval(window._asrT);
+  const ta=$("asrEdit"); if(ta) st.asr=ta.value;
+  st.asrBase=st.asr||""; st.listening=true; st.editing=false; st.asrLive="";
+  const more=$("asrContinue"); if(more) more.textContent="录入中，松开追加";
+  const mic=$("visitMic");
+  if(mic){ mic.classList.add("listen"); mic.innerHTML=visitMicSvg(true); }
+  const hint=$("visitHint");
+  if(hint) hint.textContent="松手查看识别结果";
+  const bar=document.querySelector(".visit-bar");
+  if(bar) bar.classList.add("listening");
+  const chunks=asrChunksFor(st);
+  let i=0;
+  window._asrT=setInterval(()=>{
+    if(!S.visit||!S.visit.listening) return;
+    if(i<chunks.length){ S.visit.asrLive=(S.visit.asrLive||"")+chunks[i++]; paintAsr(); }
+  },360);
+}
+function finishVisitVoice(){
+  const st=S.visit; if(!st||!st.listening) return;
+  clearInterval(window._asrT);
+  st.listening=false;
+  const segment=(st.storeId===FULL_CAPTURE_DEMO_STORE?asrChunksFor(st).join("\n"):(st.asrLive||asrChunksFor(st).join(""))).trim();
+  st.asr=[st.asrBase,segment].filter(Boolean).join("\n"); st.asrBase="";
+  st.asrLive=st.asr; st.note=st.asr; st.ready=!!st.asr; st.editing=false;
+  const qs=visitQuestions(store(st.storeId),st.kind);
+  st.asked=st.asked||{}; st.answers=st.answers||{};
+  const remaining=qs.filter(q=>!st.asked[q.id]);
+  const take=st.storeId===FULL_CAPTURE_DEMO_STORE?remaining:remaining.slice(0,3);
+  take.forEach(q=>{
+    st.asked[q.id]=true; st.answers[q.id]=q.ans;
+    if(q.chip&&!st.chips.includes(q.chip)) st.chips.push(q.chip);
+  });
+  save(); renderVisit();
+  openAsrModal();
+}
+function bindVisitVoice(id="visitMic"){
+  const btn=$(id); if(!btn) return;
+  const start=e=>{ e.preventDefault(); try{btn.setPointerCapture(e.pointerId);}catch(err){} startVisitVoice(); };
+  const end=e=>{ e.preventDefault(); if(S.visit&&S.visit.listening) finishVisitVoice(); };
+  btn.addEventListener("pointerdown",start);
+  btn.addEventListener("pointerup",end);
+  btn.addEventListener("pointercancel",end);
+}
+let cameraDemoEnabled=false;
+let cameraDemoPermission="granted";
+function updateCameraDemo(){
+  $("cameraPermissionDemo").checked=cameraDemoEnabled;
+}
+function openDemoCamera(){
+  revealOverlay();
+  $("overlay").dataset.cameraDemo="1";
+  $("overlay").innerHTML=`<div class="modal"><h3>拍摄现场照片</h3><div class="camera-preview">相机画面（模拟）</div><div class="hint">拍摄展柜全貌、样机及陈列细节，作为本次巡店的现场证据。</div><div class="asr-acts"><button class="cta ghost" data-act="cameracancel">取消</button><button class="cta" data-act="camerashoot">拍摄并添加</button></div></div>`;
+}
+function openPhotoSources(){
+  if(S.visit.photos.length>=3){toast("最多 3 张");return;}
+  revealOverlay();
+  $("overlay").innerHTML=`<div class="modal"><h3>添加现场照片</h3><div class="photo-source-menu"><button type="button" data-act="photoscamera">拍照</button><button type="button" data-act="photosgallery">图库</button><button type="button" data-act="photosfile">文件</button></div><button class="cta ghost" data-act="cameracancel">取消</button></div>`;
+}
+function openPhotoPicker(source){
+  revealOverlay();
+  const gallery=source==="gallery";
+  $("overlay").innerHTML=`<div class="modal"><h3>${gallery?"选择图库照片":"选择图片文件"}</h3><div class="sub">${gallery?"图库选择（模拟）":"文件选择（模拟）"}</div><div class="${gallery?"photo-picks":"photo-source-menu"}">${(gallery?["展柜全貌","样机陈列","陈列细节"]:["展柜全貌.jpg","样机陈列.png","陈列细节.jpg"]).map(name=>`<button type="button" data-act="photochoose" data-source="${source}">${name}</button>`).join("")}</div><button class="cta ghost" data-act="photosback">返回</button></div>`;
+}
+function addDemoPhoto(source){
+  if(S.visit.photos.length>=3){toast("最多 3 张");return;}
+  S.visit.photos.push({id:Date.now(),source});
+  closeOverlay();persist("照片已附在记录");renderVisit();
+}
+function requestDemoCamera(){
+  if(S.visit.photos.length>=3){toast("最多 3 张");return;}
+  if(!cameraDemoEnabled||cameraDemoPermission==="granted"){openDemoCamera();return;}
+  revealOverlay(); $("overlay").dataset.cameraDemo="1";
+  if(cameraDemoPermission==="denied"){
+    $("overlay").innerHTML=`<div class="modal"><h3>相机权限未开启</h3><div class="hint">拍摄现场照片需要相机权限。你可以在系统设置中开启，或先继续录入巡店内容。</div><div class="asr-acts"><button class="cta ghost" data-act="cameracancel">暂不拍照</button><button class="cta" data-act="camerasettings">去开启（模拟）</button></div></div>`;
+    return;
+  }
+  $("overlay").innerHTML=`<div class="modal"><h3>允许使用相机？</h3><div class="hint">用于拍摄门店现场照片，记录陈列、库存及物料情况。</div><div class="sub">权限申请弹窗演示，不会申请真实设备权限。</div><div class="asr-acts"><button class="cta ghost" data-act="cameradeny">不允许</button><button class="cta" data-act="cameraallow">允许</button></div></div>`;
+}
+$("cameraPermissionDemo").onchange=e=>{
+  cameraDemoEnabled=e.target.checked;
+  cameraDemoPermission=cameraDemoEnabled?"prompt":"granted";
+  if($("overlay").dataset.cameraDemo) closeOverlay();
+  updateCameraDemo();
+};
+updateCameraDemo();
+function completePhoneVisit(){
+  const st=S.visit, text=String(st.asr||st.note||"").trim();
+  if(st.listening){toast("请先结束录音");return;}
+  if(!text){toast("请先录入电话拜访内容");return;}
+  const date=st.visitDate||visitDate();S.phoneVisits=S.phoneVisits||[];
+  const existing=phoneRecord(st.storeId,date);
+  const record={contentSnapshot:visitContent(st),storeId:st.storeId,visitDate:date,time:existing?existing.time:st.startedAt||now(),updatedAt:now(),note:text,asked:st.asked,answers:st.answers};
+  if(existing)Object.assign(existing,record);else S.phoneVisits.push(record);
+  S.phoneVisitPacks=S.phoneVisitPacks||{};S.phoneVisitPacks[st.storeId]={asked:st.asked,answers:st.answers,chips:st.chips};
+  if(S.phoneVisitDrafts)delete S.phoneVisitDrafts[st.storeId];
+  S.visit=freshVisit(1,"");closeOverlay();persist("电话拜访记录已提交");showTab("stores");
+}
+function renderPhoneVisit(){
+  const st=S.visit,s=store(st.storeId);if(!s)return;
+  const qs=visitQuestions(s,"phone");
+  $("p-visit").classList.add("ask-mode");
+  $("p-visit").innerHTML=`${banner()}
+    <div class="visit-pin"><button class="back" data-act="visitback" aria-label="返回">‹</button><div><b>电话拜访</b><span style="color:var(--t1);font-weight:700">${s.name}</span><span>${storeZone(s)} · ${s.area} · ${st.visitDate||visitDate()}</span></div></div>
+    <div class="visit-body"><div class="visit-scroll">
+      <div class="card" style="padding:14px;margin:8px 0 12px;display:flex;align-items:center;justify-content:space-between;gap:12px"><div style="min-width:0"><b style="font-size:13px">店主 ${escapeAsr(s.owner)}</b><div style="margin-top:8px;font-size:15px;color:var(--primary);overflow-wrap:anywhere">${escapeAsr(s.phone||storePhone(s))}</div></div><a class="so-ico" style="width:42px;height:42px;flex-shrink:0;display:flex;align-items:center;justify-content:center;text-decoration:none" href="tel:${String(s.phone||storePhone(s)).replace(/[^+0-9]/g,"")}" aria-label="拨打电话">${storeIcoCall()}</a></div>
+      <div class="card ask-card"><div class="ask-head">电话拜访待办 · ${qs.length} 项</div>${qs.map((q,i)=>`<div class="ask-row ${q.hot?"hot":""}"><span class="ask-no">${i+1}</span><div><b>${q.t}${q.hot?"<em>优先</em>":""}${st.asked&&st.asked[q.id]?`<span style="font-size:10px;color:var(--done);margin-left:6px">已记录</span>`:""}</b><small>${q.tip}</small></div></div>`).join("")}</div>
+      ${st.asr?`<div class="card" style="padding:14px;margin:10px 0"><div style="display:flex;justify-content:space-between"><b style="font-size:13px">已记录内容</b><button class="link" data-act="asropen">查看 / 编辑 ›</button></div><div style="margin-top:8px;font-size:12px;line-height:1.7;color:var(--t3);white-space:pre-wrap">${escapeAsr(st.asr)}</div></div>`:""}
+    </div>
+    <div class="visit-bar"><div class="visit-dock-card"><span class="visit-hint" id="visitHint">${st.asr?"可继续录入电话拜访内容":"按住说话，记录电话拜访内容"}</span><div class="visit-bar-row"><button class="mic-fab" id="visitMic" data-act="visitvoice" aria-label="按住说话">${visitMicSvg(st.listening)}</button></div></div></div>
+    <div class="visit-submit"><button class="cta" id="visitSubmit" data-act="make" ${st.listening?"disabled":""}>提交电话拜访记录</button></div></div>`;
+  bindVisitVoice();
+}
+function completeVisit(){
+  if(S.visit&&S.visit.kind==="phone"){completePhoneVisit();return;}
+  const st=S.visit,s=store(st.storeId);if(!s)return;
+  if(st.listening){toast("请先结束录音");return;}
+  const ta=$("asrEdit");const asr=(ta?ta.value:st.asr||st.note||"").trim();
+  if(!asr&&!(st.photos||[]).length){toast("请先添加照片或录入巡店内容");return;}
+  st.asr=asr;st.note=asr;
+  const qs=visitQuestions(s),date=st.visitDate||visitDate(),existing=submittedVisit(s.id,date);
+  if(!existing) S.tasks=S.tasks.concat(makeTasks(s,st.chips));
+  const record={contentSnapshot:visitContent(st),storeId:s.id,visitDate:date,time:existing?existing.time:st.startedAt||now(),updatedAt:now(),chips:qs.filter(q=>st.asked&&st.asked[q.id]).map(q=>q.t),note:asr,photos:st.photos.length,photoData:JSON.parse(JSON.stringify(st.photos)),offline:S.offline};
+  if(existing)Object.assign(existing,record);else S.visits.push(record);
+  saveVisitPack(s,st);
+  S.reporting=S.reporting||{};S.reporting[s.id]="generating";
+  if(S.visitDrafts)delete S.visitDrafts[s.id];
+  S.visit=freshVisit(1,"");closeOverlay();
+  persist("巡店记录已提交，正在生成 AI 报告");scheduleReport(s.id);showTab("stores");
+}
+function renderVisit(){
+  if(S.visit&&S.visit.kind==="phone"){renderPhoneVisit();return;}
+  const st=S.visit, s=store(st.storeId);
+  const qs=visitQuestions(s);
+  const pinOn=st.step===2&&s;
+  $("p-visit").classList.toggle("ask-mode", pinOn);
+  $("p-visit").innerHTML=`
+    ${banner()}
+    ${pinOn?`<div class="visit-pin"><button class="back" data-act="visitback" aria-label="返回">‹</button><i>✓</i><div><b>到店巡店</b><span style="color:var(--t1);font-weight:700">${s.name}</span><span><em class="on">已签到</em> · ${st.visitDate||visitDate()} ${(st.startedAt||"").split(" ")[1]||""} · ${storeZone(s)} ${s.area}</span></div></div>`:`<div class="nav"><button class="back" data-act="visitback" aria-label="返回">‹</button><h3 style="font-size:18px;font-weight:800">到店打卡</h3></div>`}
+    ${st.step===1?`
+      <div class="card"><div class="row"><div class="ico">📍</div><div class="bd"><div class="t">${s?s.name:"请从门店详情发起"}</div><div class="s">${s?`${s.area} · 位置将被记录用于匹配`:""}</div></div></div></div>
+      <button class="cta" style="margin-top:16px" data-act="checkin">开始到店打卡</button>
+      <div class="demo">位置已记录；按到店待办逐项做完，语音和照片可弱网先存</div>`:""}
+    ${st.step===2?`
+      <div class="visit-body onsite-separated">
+        <div class="visit-scroll">
+          <h3 class="capture-heading">现场照片</h3><p class="capture-photo-hint">拍摄柜子展示，拍清全貌及陈列细节</p>
+          <div class="card cabinet-card">
+            <div class="photos">${(st.photos||[]).map((p,i)=>`<button class="ph" data-delph="${i}" aria-label="删除照片"><span class="cabinet-shot">▥</span><span class="photo-caption">演示照片</span><span class="x">×</span></button>`).join("")}${(st.photos||[]).length<3?`<button class="ph add" data-act="photo"><b>＋</b><span>添加照片</span></button>`:""} </div>
+          </div>
+          <h3 class="capture-heading">巡店沟通记录</h3>
+          <section class="card communication-card">
+            ${(TODO_CONFIG?qs:qs.filter(q=>!["display","trace"].includes(q.id)).map(q=>q.id==="material"?Object.assign({},q,{t:"沟通与后续",tip:"店主诉求、承诺和跟进时间"}):q)).map((q,i)=>`<div class="ask-row"><span class="ask-no">${i+1}</span><div><b>${q.t}</b><small>${q.tip}</small></div></div>`).join("")}
+            ${st.asr&&!st.listening?`<button class="asr-peek" data-act="asropen">识别结果已生成 <em>查看 / 编辑 ›</em></button>`:""}
+            <div class="communication-voice ${st.listening?"listening":""}"><span class="visit-hint" id="visitHint">${st.listening?"松手查看识别结果":st.asr?"按住继续录入":"按住说话"}</span><small>记录以上沟通内容，支持分段录入</small><button class="mic-fab ${st.listening?"listen":""}" id="visitMic" data-act="visitvoice" aria-label="按住说话">${visitMicSvg(st.listening)}</button></div>
+          </section>
+        </div>
+        <div class="visit-submit"><button class="cta ghost" data-act="visitsave" ${st.listening?"disabled":""}>暂存</button><button class="cta" id="visitSubmit" data-act="make" ${st.listening?"disabled":""}>提交巡店记录</button></div>
+      </div>`:""}`;
+  if(pinOn) bindVisitVoice();
+}
+function renderCollab(){
+  const statuses=["全部","待处理","跟进中","已完成"];
+  if(!statuses.includes(S.cf)) S.cf="全部";
+  const list=S.tickets.filter(t=>S.cf==="全部"||t.status===S.cf);
+  const icons={资源:"📦",价格:"💰",售后:"🔧",培训:"🎓",报销:"▧"};
+  $("p-collab").innerHTML=`
+    ${banner()}
+    <div class="so-head">
+      <div><h1>协同</h1><div class="sub">按状态跟进，报销和申请都在这里闭环</div></div>
+    </div>
+    <div class="co-acts">
+      <button class="cta ghost" type="button" data-act="expense">报销</button>
+      <button class="cta" type="button" data-act="new">新建</button>
+    </div>
+    <div class="so-tabs">${statuses.map(t=>`<button type="button" class="${S.cf===t?"on":""}" data-cf="${t}">${t}</button>`).join("")}</div>
+    ${list.map(t=>{ const st=store(t.store);
+      return `<article class="card so-card"><div class="so-name"><button type="button" data-ticket="${t.id}"><b><span class="grade-tag A">${icons[t.type]||"📌"}</span><span class="tk">${t.title}</span></b><div class="so-meta">${[t.type,st&&st.name,"截止 "+t.due].filter(Boolean).join(" · ")}</div></button><span class="tag ${t.status==="已完成"?"ok":t.status==="待处理"?"warn":""}">${t.status}</span></div></article>`;
+    }).join("")||`<div class="empty">这个状态还没有事项</div>`}
+    <div class="demo">点事项改状态；报销拍照后进入待处理</div>`;
+}
+function renderCases(){
+  document.querySelector(".phone").classList.remove("talking");
+  if(S.voiceFrom==="cases" && S.voiceFlow!=="idle"){ renderVoiceRoom(); return; }
+  $("p-cases").innerHTML=`
+    ${banner()}<h1>金牌案例</h1><div class="sub">基于你的拜访问题推荐，不做无关内容推送</div>
+    <div class="card" style="margin-top:16px;padding:16px"><span class="tag ok">为你推荐</span><h3 style="font-size:16px;margin:10px 0 6px">客户说“竞品更便宜”时，先谈什么？</h3><p style="font-size:12px;line-height:1.6;color:#666">用稳定价盘、单台利润和“陪同消化库存”的承诺，替代单纯压价。</p><button class="link" style="margin-top:10px" data-act="case">查看话术与案例 →</button></div>
+    <div class="sec"><h2>按场景学习</h2></div>
+    <div class="card">${[
+      ["新品首次进店","样机演示 + 小批量试单","新品/样机"],
+      ["慢销库存怎么消化","活动、物料与店员激励组合","库存/动销"],
+      ["客户迟迟不下单","识别额度、信任与决策人问题","客情/谈判"]
+    ].map(x=>`<button class="row" data-act="case"><div class="ico">★</div><div class="bd"><div class="t">${x[0]}</div><div class="s">${x[1]}</div></div><span class="tag">${x[2]}</span></button>`).join("")}</div>
+    <section class="home-dock"><div class="dock-row"><div class="dock-head"><span>提问检索</span></div><div class="home-pills"><button data-voicetopic="price">价格异议</button><button data-voicetopic="stock">库存动销</button><button data-voicetopic="order">迟迟不下单</button></div></div>${voiceComposer("casevoice","caseAsk","home-send-case","也可以打字检索")}</section>`;
+  bindAskField("caseAsk");
+}
+function growthStat(){
+  const visits=S.visits.length+22;
+  const closed=S.tickets.filter(t=>t.status==="已完成").length+6;
+  const cases=3;
+  const pts=200+visits*20+closed*30+cases*15;
+  const levels=[{n:"铜牌督导",min:0},{n:"银牌督导",min:500},{n:"金牌督导",min:1200},{n:"黑金督导",min:2000}];
+  let lv=levels[0], next=levels[1];
+  levels.forEach((x,i)=>{ if(pts>=x.min){ lv=x; next=levels[i+1]||null; } });
+  const span=(next?next.min:lv.min+800)-lv.min;
+  const pct=next?Math.min(100,Math.round((pts-lv.min)/span*100)):100;
+  const remain=next?next.min-pts:0;
+  const logs=[
+    ...S.visits.slice(-3).reverse().map(v=>({t:`有效拜访 ${store(v.storeId)?store(v.storeId).name:""}`,p:"+20",d:(v.time||"").slice(0,5)||"今日"})),
+    {t:"有效拜访 Celulares El Dorado",p:"+20",d:"09-22"},
+    {t:"协同闭环 · 新店培训申请",p:"+30",d:"09-21"},
+    {t:"学习金牌话术",p:"+15",d:"09-20"},
+    {t:"连续 5 天完成拜访计划",p:"+40",d:"09-19"}
+  ].slice(0,5);
+  return {visits,closed,cases,pts,lv:lv.n,next:next&&next.n,pct,remain,logs};
+}
+function renderMe(){
+  const g=growthStat();
+  if(!["业绩","成长"].includes(S.mp)) S.mp="业绩";
+  if(!["全部","销售","激励","拜访","协同","案例"].includes(S.mc)) S.mc="全部";
+  const pending=S.tickets.filter(t=>t.status!=="已完成").length;
+  const sales=S.mp==="业绩";
+  const logs=S.mc==="拜访"?g.logs.filter(x=>/拜访/.test(x.t)):S.mc==="协同"?g.logs.filter(x=>/协同/.test(x.t)):S.mc==="案例"?g.logs.filter(x=>/话术|案例/.test(x.t)):g.logs;
+  const rows=sales?(S.mc==="激励"?[["基础提成","本月已入账","1.68M"],["超额奖金","再消化 880 台可拿满","460K"],["新拓店奖励","本月新店贡献","200K"]]:S.mc==="拜访"?[["本月拜访",`${S.visits.length} 次已完成`,"看记录"],["待协同",`${pending} 条未闭环`,"去协同"],["直管门店",`${STORES.length} 家`,"去门店"]]:[["ZERO · GT","360 / 500 台","72%"],["NOTE","880 / 1,100 台","80%"],["HOT","440 / 800 台","55%"]]):logs.map(x=>[x.t,x.d,x.p]);
+  $("p-me").innerHTML=`
+    <section class="me-hero">
+      <div class="me-kicker">我的工作台 · 个人中心</div>
+      <div class="me-user"><b>Ana · 哥伦比亚督导</b><br>Bogotá · 直管 ${STORES.length} 家门店 · 本月拜访 ${S.visits.length}</div>
+      <div class="me-tabs">
+        <button class="${sales?"on":""}" data-mp="业绩">我的业绩</button>
+        <button class="${sales?"":"on"}" data-mp="成长">个人成长</button>
+      </div>
+    </section>
+    <section class="me-panel">
+      ${sales?`
+        <div class="me-compare">
+          <div class="me-col"><small><i class="dot"></i>销售达成</small><b>79.5%</b><p>3,420 / 4,300 台<br>今日 126 · 还需 880</p></div>
+          <div class="me-col on"><small><i class="dot"></i>激励情况 · COP</small><b>2.34M</b><p>今日 +86K · 超越 86%<br>基础 1.68M · 超额 460K</p></div>
+        </div>
+        <div class="me-note">9 月目标还差 880 台，消化后可拿满月度超额</div>
+        <div class="me-cta"><em>今日 +86K</em><button class="cta" data-act="goalsales">查看销售与激励明细</button><div class="me-hint">领先同区 300 台 · 激励已同步本月账单</div></div>
+        <button class="me-vip" data-act="growth"><div><b>${g.lv}</b><span>本月积分 ${g.pts.toLocaleString()} · ${g.next?`距${g.next}差 ${g.remain}`:"已达当前最高"}</span></div><i>去看看 ›</i></button>
+      `:`
+        <div class="me-compare">
+          <div class="me-col"><small><i class="dot"></i>本月积分</small><b>${g.pts.toLocaleString()}</b><p>拜访 ${g.visits} · 闭环 ${g.closed}<br>案例学习 ${g.cases}</p></div>
+          <div class="me-col on"><small><i class="dot"></i>当前等级</small><b>${g.lv.replace("督导","")}</b><p>${g.next?`距${g.next}还差 ${g.remain} 分`:"已到达当前最高等级"}<br>连续拜访 · 协同及时</p></div>
+        </div>
+        <div class="me-note">积分来自有效拜访、协同闭环和案例学习</div>
+        <div class="me-cta"><button class="cta" data-act="growth">查看积分明细</button></div>
+        <button class="me-vip" data-act="goalincentive"><div><b>本月激励 COP 2.34M</b><span>今日 +86K · 与业绩同步计算</span></div><i>去看看 ›</i></button>
+      `}
+      <div class="chips me-chips">${(sales?["全部","销售","激励","拜访"]:["全部","拜访","协同","案例"]).map(x=>`<button class="chip ${S.mc===x?"on":""}" data-mc="${x}">${x}</button>`).join("")}</div>
+      <div class="card">${rows.map(x=>`<button class="row" ${sales&&x[0]==="待协同"?"data-tab=collab":sales&&x[0]==="直管门店"?"data-tab=stores":sales&&x[0]==="本月拜访"?"data-act=history":sales&&S.mc==="激励"?"data-act=goalincentive":sales?"data-act=goalsales":"data-act=growth"}><div class="ico">${sales?"●":"＋"}</div><div class="bd"><div class="t">${x[0]}</div><div class="s">${x[1]}</div></div><span class="tag ${/^\+/.test(x[2])?"ok":""}">${x[2]}</span></button>`).join("")}</div>
+      <div class="me-spot"><div class="me-ava">督</div><button class="me-plus" data-act="${sales?"history":"growth"}">${sales?"＋ 访店记录":"＋ 积分明细"}</button></div>
+    </section>`;
+}
+function callRecRow(){
+  const on=!!S.callRec;
+  return `<button type="button" class="call-rec ${on?"on":""}" data-act="callrec" aria-pressed="${on}"><div><b>${on?"正在录制通话":"通话录制"}</b><small>${on?"可随时关闭，挂断后保存录音":"默认关闭，需要时再打开"}</small></div><span class="switch ${on?"on":""}" aria-hidden="true"><i></i></span></button>`;
+}
+
+function openCallPrep(s,reset){
+  if(reset){ S.callRec=false; save(); }
+  revealOverlay();
+  $("overlay").dataset.call=s.id;
+  $("overlay").dataset.callPhase="prep";
+  $("overlay").innerHTML=`<div class="modal">
+    <div class="nav" style="margin-bottom:6px"><button class="back" data-act="overlayback" aria-label="返回">‹</button><h3 style="font-size:18px;font-weight:800">语音沟通</h3></div>
+    <div class="hint">店主不在店、或不方便上门时，先电话确认额度、到货和未闭环事项。</div>
+    <div class="card" style="padding:14px 16px;margin-bottom:4px"><div class="t" style="font-size:14px;font-weight:800">${s.name}</div><div class="s" style="margin-top:4px">${s.role} ${s.owner} · ${storePhone(s)}</div><div class="so-alert" style="margin-top:10px">${storeWhy(s)}</div></div>
+    ${callRecRow()}
+    <button class="cta" style="margin-top:16px" data-act="storecalling" data-call="${s.id}">拨打语音电话</button>
+  </div>`;
+}
+function openCallLive(s){
+  revealOverlay();
+  $("overlay").dataset.call=s.id;
+  $("overlay").dataset.callPhase="live";
+  $("overlay").innerHTML=`<div class="modal call-ui">
+    <div class="me-ava">${(s.owner||"店")[0]}</div>
+    <h3>${s.owner}</h3>
+    <div class="sub">${s.name} · ${storePhone(s)}</div>
+    <div class="call-pulse ${S.callRec?"rec":""}"></div>
+    <div class="hint" style="margin-top:14px">${S.callRec?"通话中 · 已开启录制":"正在呼叫 · 确认「"+storeWhy(s)+"」"}</div>
+    <button class="cta" style="margin-top:16px" data-act="callend">挂断</button>
+  </div>`;
+}
+function redrawCall(){
+  const s=store($("overlay").dataset.call); if(!s) return;
+  if($("overlay").dataset.callPhase==="live") return;
+  openCallPrep(s);
+}
+function closeOverlay(){
+  delete $("overlay").dataset.cameraDemo;
+  const o=$("overlay"); if(!o) return;
+  o.classList.add("hidden"); o.innerHTML=""; delete o.dataset.ticket; delete o.dataset.call; delete o.dataset.callPhase; delete o.dataset.asr;
+}
+function closeSheet(){
+  const s=$("sheet"); if(!s) return;
+  s.classList.add("hidden"); s.innerHTML="";
+}
+function revealOverlay(){
+  $("overlay").classList.remove("hidden");
+}
+function visitHasData(st){
+  if(!st) return false;
+  return !!((st.photos||[]).length||[st.asr,st.asrLive,st.note,st.voiceIssue].some(t=>String(t||"").trim())||(st.chips||[]).length||Object.values(st.asked||{}).some(Boolean)||Object.values(st.answers||{}).some(t=>String(t||"").trim()));
+}
+function leaveVisit(){
+  const id=S.visit&&S.visit.storeId;
+  const returnTo=S.visit&&S.visit.returnTo||"detail";
+  save();clearInterval(window._asrT);S.visit=freshVisit(1,"");save();
+  closeOverlay();showTab("stores");if(id&&returnTo==="detail")openStore(id);
+}
+function backVisit(){leaveVisit();}
+function openTicket(id){
+  const t=S.tickets.find(x=>x.id===id); if(!t) return; const st=store(t.store);
+  revealOverlay(); $("overlay").dataset.ticket=id;
+  $("overlay").innerHTML=`<div class="modal">
+    <h3>${t.title}</h3>
+    <div class="hint">${t.type} · ${st?st.name:""}<br>负责人 ${t.owner} · 截止 ${t.due}${t.ev?" · 证据："+t.ev:""}</div>
+    <div class="chips" style="margin-bottom:14px">${["待处理","跟进中","已完成"].map(s=>`<button class="chip ${t.status===s?"on":""}" data-st="${s}">${s}</button>`).join("")}</div>
+    <div class="field"><label>完成证据</label><input class="fld" id="ev" value="${t.ev||""}" placeholder="照片、单号或口头确认"></div>
+    <button class="cta" data-act="savet">保存</button>
+  </div>`;
+}
+function openNew(storeId){
+  revealOverlay();
+  $("overlay").innerHTML=`<div class="modal">
+    <h3>新建协同申请</h3>
+    <div class="hint">先登记需求、负责人和截止时间。物料履约仍依赖市场/仓储，本页不假装已发货。</div>
+    <div class="field"><label>类型</label><div class="chips" id="nt">${["资源","价格","售后","培训","报销"].map((t,i)=>`<button class="chip ${i===0?"on":""}" data-nt="${t}">${t}</button>`).join("")}</div></div>
+    <div class="field"><label>门店</label><select id="ns">${STORES.map(s=>`<option value="${s.id}" ${s.id===storeId?"selected":""}>${s.name}</option>`).join("")}</select></div>
+    <div class="field"><label>申请内容</label><input class="fld" id="ntitle" placeholder="例如：申请 NOTE 堆头 / 对等返利 / 配件 / 培训"></div>
+    <div class="field"><label>负责人</label><select id="no">${OWNERS.map(o=>`<option>${o}</option>`).join("")}</select></div>
+    <div class="field"><label>截止</label><input class="fld" id="nd" value="09-25"></div>
+    <button class="cta" data-act="create">提交申请</button>
+  </div>`;
+}
+function openExpense(captured=false){
+  revealOverlay();
+  $("overlay").innerHTML=`<div class="modal">
+    <h3>${captured?"核对报销草稿":"报销"}</h3>
+    <div class="hint">外勤时只需拍照。系统先识别票据；金额、类型等信息可在空闲时确认，避免现场填长表。</div>
+    ${captured?`<div class="card" style="padding:14px 16px;margin:12px 0"><div style="display:flex;gap:11px;align-items:center"><div class="ico">▧</div><div><b style="font-size:13px">票据已识别</b><div class="sub">置信度 92% · 原图已关联草稿</div></div></div></div>
+      <div class="field"><label>费用类型</label><select id="etype"><option>交通出行</option><option>餐饮招待</option><option>物料采购</option><option>其他</option></select></div>
+      <div class="field"><label>金额（COP）</label><input class="fld" id="eamount" value="48,000"></div>
+      <div class="field"><label>票据日期</label><input class="fld" id="edate" value="2026-09-22"></div>
+      <button class="cta" data-act="expensecreate">确认并生成草稿</button>`:
+      `<button class="receipt-shot" data-act="expensephoto"><b>▧</b>拍摄或上传票据<small>照片仅用于生成本机演示草稿</small></button>`}
+  </div>`;
+}
+function makeTasks(s, chips){
+  const names=chips.map(id=>CHIPS.find(c=>c.id===id)?.t).filter(Boolean);
+  const rules=[{if:["credit"],title:"复核该店可用额度并回写来源"},{if:["price"],title:"发起价格/促销授权协同"},{if:["pop","disp"],title:"登记物料/陈列资源申请"},{if:["svc"],title:"催办售后配件"},{if:["train"],title:"安排店员主推培训"},{if:["demo"],title:"申请样机上门演示"},{if:["rel","away"],title:"预约决策人二次拜访"},{if:["stock"],title:"跟进 Pova 到货日，避免空台面"}];
+  const made=[];
+  rules.forEach(r=>{ if(r.if.some(x=>chips.includes(x))) made.push({id:"k"+Date.now()+made.length,title:r.title,store:s.name,from:names.slice(0,2).join(" / ")||"拜访记录",done:false,visit:true}); });
+  if(!made.length) made.push({id:"k"+Date.now(),title:"回访确认今日沟通结论",store:s.name,from:"拜访记录",done:false,visit:true});
+  return made;
+}
+function showTab(tab,stage,opts){
+  if(tab!=="visit" && $("p-visit")&&!$("p-visit").classList.contains("hidden")){save();clearInterval(window._asrT);S.visit=freshVisit(1,"");save();}
+  journeyStage=stage||({fight:2,stores:3,visit:4,cases:2,collab:6,me:7}[tab]||2);
+  const keepVoice=(tab==="fight" && S.voiceFrom!=="cases")||(tab==="cases" && S.voiceFrom==="cases");
+  if(!keepVoice){ S.voiceFlow="idle"; S.voiceHadResult=false; document.querySelector(".phone").classList.remove("talking"); }
+  ["fight","stores","visit","cases","collab","me"].forEach(k=>$("p-"+k).classList.toggle("hidden",k!==tab));
+  const navTab=tab==="visit"?"fight":tab;
+  document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("on", b.dataset.tab===navTab));
+  closeSheet();
+  if(!opts||!opts.keepOverlay) closeOverlay();
+  ({fight:renderFight,stores:renderStores,visit:renderVisit,cases:renderCases,collab:renderCollab,me:renderMe}[tab])();
+  renderJourney(journeyStage);
+}
+document.body.addEventListener("click",e=>{
+  if(e.target.closest("#p-fight,#p-cases,#p-me") && e.target.closest("button,a,[role=button]")){ e.preventDefault(); e.stopImmediatePropagation(); toast("coming soon"); }
+},true);
+document.body.addEventListener("pointerdown",e=>{
+  if(e.target.closest("#p-fight,#p-cases,#p-me") && e.target.closest("button")){ e.preventDefault(); e.stopImmediatePropagation(); }
+},true);
+document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
+document.body.addEventListener("click",e=>{
+  if(e.target.id==="overlay"){ $("overlay").dataset.asr?closeAsrModal():closeOverlay(); return; }
+  const el=e.target.closest("[data-store],[data-visit],[data-pick],[data-chip],[data-act],[data-sf],[data-cf],[data-rank],[data-ticket],[data-task],[data-tab],[data-st],[data-nt],[data-new],[data-delph],[data-voicetopic],[data-mp],[data-mc],[data-call],[data-msg],[data-sz],[data-sa],[data-sg],[data-sft],[data-fz],[data-fa],[data-fg]");
+  if(!el || el.classList.contains("tab")) return;
+  if(el.dataset.new){
+    closeSheet();
+    showTab("collab",null,{keepOverlay:true});
+    requestAnimationFrame(()=>openNew(el.dataset.new));
+    return;
+  }
+  if(el.dataset.store){ openStore(el.dataset.store); return; }
+  if(el.dataset.tab && !el.classList.contains("tab")){ showTab(el.dataset.tab); return; }
+  if(el.dataset.visit){
+    const id=el.dataset.visit;
+    resumeVisit(id);
+    persist("已完成到店打卡");
+    closeSheet(); showTab("visit");
+    return;
+  }
+  if(el.dataset.pick){ S.visit.storeId=el.dataset.pick; save(); renderVisit(); return; }
+  if(el.dataset.sf){ S.sr=el.dataset.sf; save(); renderStores(); return; }
+  if(el.dataset.sz){ S.sz=el.dataset.sz; S.sa="全部"; save(); renderStores(); return; }
+  if(el.dataset.sa){ S.sa=el.dataset.sa; save(); renderStores(); return; }
+  if(el.dataset.sg){ S.sg=el.dataset.sg; save(); renderStores(); return; }
+  if(el.dataset.fz){ S.fz=el.dataset.fz; S.fa="全部"; save(); openStoreFilter(); return; }
+  if(el.dataset.fa){ S.fa=el.dataset.fa; save(); openStoreFilter(); return; }
+  if(el.dataset.fg){ S.fg=el.dataset.fg; save(); openStoreFilter(); return; }
+  if(el.dataset.rank){ S.homeFilter=el.dataset.rank; save(); renderFight(); return; }
+  if(el.dataset.cf){ S.cf=el.dataset.cf; save(); renderCollab(); return; }
+  if(el.dataset.mp){ S.mp=el.dataset.mp; S.mc="全部"; save(); renderMe(); return; }
+  if(el.dataset.mc){ S.mc=el.dataset.mc; save(); renderMe(); return; }
+  if(el.dataset.chip){
+    const id=el.dataset.chip;
+    S.visit.chips=S.visit.chips.includes(id)?S.visit.chips.filter(x=>x!==id):S.visit.chips.concat(id);
+    save(); renderVisit(); return;
+  }
+  if(el.dataset.delph){ S.visit.photos.splice(+el.dataset.delph,1); save(); renderVisit(); return; }
+  if(el.dataset.ticket){ e.stopPropagation(); requestAnimationFrame(()=>openTicket(el.dataset.ticket)); return; }
+  if(el.dataset.task){ const t=S.tasks.find(x=>x.id===el.dataset.task); if(t){ t.done=!t.done; persist("任务已更新"); renderFight(); } return; }
+  if(el.dataset.st){
+    const tk=S.tickets.find(x=>x.id===$("overlay").dataset.ticket);
+    if(tk) tk.status=el.dataset.st;
+    $("overlay").querySelectorAll("[data-st]").forEach(b=>b.classList.toggle("on", b.dataset.st===el.dataset.st));
+    return;
+  }
+  if(el.dataset.nt && $("nt")){ $("nt").querySelectorAll(".chip").forEach(b=>b.classList.toggle("on", b===el)); return; }
+  if(el.dataset.msg && $("chatchips")){ $("chatchips").querySelectorAll(".chip").forEach(b=>b.classList.toggle("on", b===el)); return; }
+  if(el.dataset.voicetopic){
+    S.voiceTopic=el.dataset.voicetopic;
+    S.voiceFrom=CASE_TOPICS.includes(S.voiceTopic)?"cases":"fight";
+    S.voiceHadResult=true; S.voiceFlow="result"; save(); redrawVoice(); return;
+  }
+  const a=el.dataset.act;
+  if(!a) return;
+  if(a==="storemore"){
+    if(storeLoadTimer) return;
+    el.disabled=true; el.textContent="加载中…"; el.setAttribute("aria-busy","true");
+    storeLoadTimer=setTimeout(()=>{
+      storeLoadTimer=null;
+      S.storePage=(S.storePage||1)+1; save();
+      const results=$("storeResults"); if(results) results.innerHTML=storeResultsHtml();
+    },500);
+    return;
+  }
+  if(a==="visitsave"){if(S.visit.listening){toast("请先结束录音");return;}if(!visitHasData(S.visit)){toast("请先添加照片或录入内容");return;}try{save();toast("已暂存，可退出后继续编辑");}catch(err){toast("暂存失败，请勿关闭页面");}return;}
+  if(a==="visitback"){ backVisit(); return; }
+  if(a==="continuedraft"){const draft=draftForStore(el.dataset.call);resumeVisit(el.dataset.call,"stores",draft&&draft.kind||"onsite");showTab("visit");return;}
+  if(a==="phonevisit"){resumeVisit(el.dataset.call,"detail","phone");closeSheet();showTab("visit");return;}
+  if(a==="visitstay"){ closeOverlay(); return; }
+  if(a==="visitexit"){ leaveVisit(); return; }
+  if(a==="overlayback"){ closeOverlay(); return; }
+  if(a==="tovisit"){ openStore(el.dataset.call); return; }
+  if(a==="historyreport"){ e.preventDefault(); const s=store(el.dataset.call); const history=s.hist.concat(S.visits.filter(v=>v.storeId===s.id).map(v=>({d:v.time,t:v.note||v.chips.join(" / ")})))[Number(el.dataset.history)]; openAiReport(s.id,history); return; }
+  if(a==="aireport"){ openAiReport(el.dataset.call); return; }
+  if(a==="checkin"){ if(!S.visit.storeId){ toast("先选门店"); return; } S.visit=Object.assign(freshVisit(2,S.visit.storeId),{point:S.visit.point||"4.6483° N, 74.0619° W"}); persist("签到已记录"); renderVisit(); return; }
+  if(a==="voiceissue"){
+    S.visit.voiceIssue="Pova 缺货，陈列被竞品挤占";
+    ["stock","disp"].forEach(id=>{if(!S.visit.chips.includes(id)) S.visit.chips.push(id);});
+    persist("已识别现场问题"); renderVisit(); return;
+  }
+  if(a==="voicenote"){ S.visit.note="店主希望本周确认 Pova 到货时间，下周二复访。"; persist("已识别语音备注"); renderVisit(); return; }
+  if(a==="visitvoice"){ return; }
+  if(a==="asredit"){ S.visit.editing=true; save(); openAsrModal(); return; }
+  if(a==="asrdone"){
+    const ta=$("asrEdit");
+    S.visit.asr=((ta&&ta.value)||S.visit.asr||"").trim();
+    S.visit.note=S.visit.asr;
+    S.visit.editing=false;
+    S.visit.ready=!!S.visit.asr; save(); openAsrModal(); return;
+  }
+  if(a==="asropen"){ openAsrModal(); return; }
+  if(a==="asrclose"){ closeAsrModal(); return; }
+  if(a==="photo"){openPhotoSources();return;}
+  if(a==="photoscamera"){requestDemoCamera();return;}
+  if(a==="photosgallery"){openPhotoPicker("gallery");return;}
+  if(a==="photosfile"){openPhotoPicker("file");return;}
+  if(a==="photosback"){openPhotoSources();return;}
+  if(a==="photochoose"){addDemoPhoto(el.dataset.source);return;}
+  if(a==="cameraallow"){cameraDemoPermission="granted";updateCameraDemo();openDemoCamera();return;}
+  if(a==="cameradeny"){cameraDemoPermission="denied";updateCameraDemo();closeOverlay();toast("相机权限未开启，可继续语音录入");return;}
+  if(a==="cameracancel"){closeOverlay();return;}
+  if(a==="camerasettings"){
+    revealOverlay(); $("overlay").dataset.cameraDemo="1";
+    $("overlay").innerHTML=`<div class="modal"><h3>系统相机权限（模拟）</h3><div class="hint">开启后可返回拍摄现场照片。此处仅演示设置流程。</div><div class="asr-acts"><button class="cta ghost" data-act="cameracancel">返回</button><button class="cta" data-act="cameraallow">开启相机权限</button></div></div>`;return;
+  }
+  if(a==="camerashoot"){addDemoPhoto("camera");return;}
+  if(a==="make"){ completeVisit(); return; }
+  if(a==="resetv"){ S.visit=freshVisit(1,""); save(); renderVisit(); return; }
+  if(a==="new"){ e.stopPropagation(); requestAnimationFrame(()=>openNew()); return; }
+  if(a==="expense"){ e.stopPropagation(); requestAnimationFrame(()=>openExpense()); return; }
+  if(a==="expensephoto"){ openExpense(true); return; }
+  if(a==="expensecreate"){
+    const type=$("etype").value, amount=$("eamount").value, date=$("edate").value;
+    S.expenses.unshift({id:"e"+Date.now(),type,amount,date});
+    S.tickets.unshift({id:"e"+Date.now(),type:"报销",store:"s1",title:`${type}报销 · COP ${amount}`,owner:"我自己跟进",due:date.slice(5),status:"待处理",ev:"票据已识别"});
+    S.cf="待处理"; closeOverlay(); persist("报销已进入协同待处理"); renderCollab(); return;
+  }
+  if(a==="savet"){ const tk=S.tickets.find(x=>x.id===$("overlay").dataset.ticket); if(tk){ tk.ev=($("ev")||{}).value||tk.ev; S.cf=tk.status; } closeOverlay(); persist("协同事项已更新"); renderCollab(); return; }
+  if(a==="create"){
+    const type=(($("nt")||{}).querySelector && $("nt").querySelector(".chip.on")||{}).dataset.nt||"资源";
+    S.tickets.unshift({id:"t"+Date.now(),type,store:$("ns").value,title:($("ntitle")||{}).value||type+"需求登记",owner:$("no").value,due:$("nd").value,status:"待处理",ev:""});
+    S.cf="待处理"; closeOverlay(); persist("申请已登记"); renderCollab(); return;
+  }
+  if(a==="storefilter"){ e.stopPropagation(); S.fz=S.sz||"全部"; S.fa=S.sa||"全部"; S.fg=S.sg||"全部"; S.fq=S.q||""; save(); requestAnimationFrame(()=>openStoreFilter()); return; }
+  if(a==="filterreset"){ S.fz="全部"; S.fa="全部"; S.fg="全部"; save(); openStoreFilter(); }
+  if(a==="filterdone"){
+    S.sz=S.fz||"全部"; S.sa=S.fa||"全部"; S.sg=S.fg||"全部"; S.storePage=1;
+    closeOverlay(); save(); renderStores(); return;
+  }
+  if(a==="storecall"){
+    const s=store(el.dataset.call); if(!s) return;
+    openCallPrep(s,true); return;
+  }
+  if(a==="storecalling"){
+    const s=store(el.dataset.call); if(!s) return;
+    openCallLive(s); return;
+  }
+  if(a==="callrec"){ S.callRec=!S.callRec; save(); redrawCall(); return; }
+  if(a==="storechat"){
+    const s=store(el.dataset.call); if(!s) return;
+    revealOverlay();
+    $("overlay").innerHTML=`<div class="modal"><h3>发消息给 ${s.owner}</h3><div class="hint">${s.name} · 用于先同步到货、额度和回访时间</div><div class="chips" id="chatchips" style="margin-bottom:12px">${["确认额度是否刷新","本周能否见到店主","到货后通知我"].map((t,i)=>`<button class="chip ${i===0?"on":""}" data-msg="${t}">${t}</button>`).join("")}</div><button class="cta" data-act="chatsend" data-call="${s.id}">发送</button></div>`;
+    return;
+  }
+  if(a==="chatsend"){ closeOverlay(); persist("消息已发给店主"); return; }
+
+  if(a==="callend"){
+    const s=store($("overlay").dataset.call);
+    const rec=!!S.callRec;
+    if(rec&&s) S.visits.push({storeId:s.id,time:now(),chips:["语音沟通"],note:`通话已录制：${storeWhy(s)}`});
+    S.callRec=false; closeOverlay(); toast(rec?"已挂断，录音已保存":"已挂断"); return;
+  }
+  if(a==="goal"||a==="goalsales"||a==="goalincentive"){
+    revealOverlay();
+    $("overlay").innerHTML=`<div class="modal goal-sheet"><h3>${a==="goalincentive"?"激励情况":"销售达成情况"}</h3>
+      ${a==="goalincentive"?`<div class="hint">本月已赚 COP 2.34M · 今日 +COP 86K · 超越 86% 同区督导</div>
+        <div class="nums"><div><b>2.34M</b><span>本月激励</span></div><div><b>+86K</b><span>今日新增</span></div><div><b>86%</b><span>同区排名</span></div></div>
+        <div class="income-lines">基础提成 <b>1.68M</b><br>超额奖金 <b>460K</b><br>新拓店奖励 <b>200K</b></div>`:
+        `<div class="hint">9 月目标 4,300 台 · 已完成 3,420 台 · 还需 880 台</div>
+        <div class="nums"><div><b>79.5%</b><span>完成率</span></div><div><b>126</b><span>今日销量</span></div><div><b>+300</b><span>领先同区</span></div></div>
+        <div class="bar"><i style="width:79.5%"></i></div>
+        <div class="series"><span class="series-head"><span>分系列达成</span><span>台</span></span>
+          <span class="series-row"><i></i><span class="series-name">ZERO · GT</span><span class="series-bar"><b style="width:72%"></b></span><strong>360/500</strong></span>
+          <span class="series-row"><i></i><span class="series-name">NOTE</span><span class="series-bar"><b style="width:80%"></b></span><strong>880/1100</strong></span>
+          <span class="series-row"><i></i><span class="series-name">HOT</span><span class="series-bar"><b style="width:55%"></b></span><strong>440/800</strong></span>
+        </div>`}
+      <button class="cta" style="margin-top:16px" ${$("p-me")&&!$("p-me").classList.contains("hidden")?'data-act="closegoal"':'data-tab="fight"'}>${$("p-me")&&!$("p-me").classList.contains("hidden")?"返回我的":"返回今日作战"}</button></div>`;
+    return;
+  }
+  if(a==="closegoal"){ closeOverlay(); return; }
+  if(a==="menu"){ toast("菜单入口已收起，专注今日作战"); return; }
+  if(a==="recommend"){ S.recPage=(S.recPage||0)+1; save(); renderFight(); toast("已换一批建议门店"); return; }
+  if(a==="voiceask"){
+    S.voiceFrom="fight"; S.voiceTopic=CASE_TOPICS.includes(S.voiceTopic)?"visit":(S.voiceTopic||"visit");
+    S.voiceHadResult=false; S.voiceFlow="listening"; save(); renderFight();
+  }
+  if(a==="casevoice"){
+    S.voiceFrom="cases"; S.voiceTopic=CASE_TOPICS.includes(S.voiceTopic)?S.voiceTopic:"price";
+    S.voiceHadResult=false; S.voiceFlow="listening"; save(); renderCases();
+  }
+  if(a==="asktype"){ S.askMode="text"; save(); redrawAskDock(); return; }
+  if(a==="askvoice"){ S.askMode="voice"; save(); redrawAskDock(); return; }
+  if(a==="caseask"){ S.askMode="text"; save(); redrawAskDock(); return; }
+  if(a==="casesearch"){ sendTypedAsk("cases",(($("caseAsk")||$("caseQ")||{}).value||"")); return; }
+  if(a==="home-send-case"){ sendTypedAsk("cases",(($("caseAsk")||{}).value||"")); return; }
+  if(a==="voicecancel"){ S.voiceFlow="idle"; S.voiceHadResult=false; document.querySelector(".phone").classList.remove("talking"); save(); redrawVoice(); }
+  if(a==="diagnose"){ revealOverlay(); $("overlay").innerHTML=`<div class="modal"><h3>经营诊断</h3><div class="hint">输入门店名称后，小巡会汇总最近拜访、账期、库存和协同事项，形成一条可执行建议。</div><div class="field"><label>要诊断哪家门店？</label><input class="fld" placeholder="例如：Celulares El Dorado"></div><button class="cta" data-tab="stores">去门店360查看</button></div>`; return; }
+  if(a==="overdue"){ S.homeFilter="全部"; save(); renderFight(); setTimeout(()=>document.querySelector(".ai-store-list")?.scrollIntoView({behavior:"smooth",block:"center"}),0); toast("已定位久未拜访门店"); }
+  if(a==="home-send"){ sendTypedAsk("fight",(($("homeAsk")||{}).value||"")); return; }
+  if(a==="ask"){ S.askMode="text"; save(); redrawAskDock(); return; }
+  if(a==="history"){ $("sheet").classList.remove("hidden"); $("sheet").innerHTML=`<div class="nav"><button class="back" id="closeSheet">‹</button><h3 style="font-size:18px">全部访店历史</h3></div><div class="sub">按日期倒序；门店详情默认仅用最新有效信息辅助决策</div><div class="card" style="margin-top:16px">${STORES.flatMap(s=>s.hist.map(v=>({s,v}))).sort((a,b)=>b.v.d.localeCompare(a.v.d)).map(x=>`<button class="row" data-store="${x.s.id}"><div class="ico">📝</div><div class="bd"><div class="t">${x.v.d} · ${x.s.name}</div><div class="s">${x.v.t}</div></div></button>`).join("")}</div>`; $("closeSheet").onclick=()=>$("sheet").classList.add("hidden"); }
+  if(a==="growth"){
+    const g=growthStat();
+    $("sheet").classList.remove("hidden");
+    $("sheet").innerHTML=`<div class="nav"><button class="back" id="closeSheet">‹</button><h3 style="font-size:18px;font-weight:800">积分明细</h3></div>
+      <div class="card grow-card" style="margin-top:8px"><div class="grow-top"><div><div class="sub">本月积分</div><b class="grow-pts">${g.pts.toLocaleString()}</b></div><span class="tag">${g.lv}</span></div><div class="bar"><i style="width:${g.pct}%"></i></div><div class="sub">${g.next?`距${g.next}还差 ${g.remain} 分`:"已到达当前最高等级"}</div></div>
+      <div class="sec"><h2>怎么拿分</h2></div>
+      <div class="card">${[["有效拜访","完成一次带留资的门店拜访","+20"],["协同闭环","事项变为已完成并留下证据","+30"],["案例学习","看完一条金牌话术或案例","+15"],["连续出勤","连续 5 天完成拜访计划","+40"]].map(x=>`<div class="row" style="cursor:default"><div class="ico">＋</div><div class="bd"><div class="t">${x[0]}</div><div class="s">${x[1]}</div></div><span class="tag ok">${x[2]}</span></div>`).join("")}</div>
+      <div class="sec"><h2>最近记录</h2></div>
+      <div class="card">${g.logs.map(x=>`<div class="row" style="cursor:default"><div class="ico">＋</div><div class="bd"><div class="t">${x.t}</div><div class="s">${x.d}</div></div><span class="tag ok">${x.p}</span></div>`).join("")}</div>
+      <div class="demo">积分只回看工作沉淀，不另开抽奖或商城</div>`;
+    $("closeSheet").onclick=()=>{ $("sheet").classList.add("hidden"); $("sheet").innerHTML=""; };
+  }
+  if(a==="case"){
+    $("sheet").classList.remove("hidden");
+    $("sheet").innerHTML=`<div class="nav"><button class="back" id="closeSheet">‹</button><h3 style="font-size:18px;font-weight:800">金牌话术</h3></div><span class="tag ok">谈判 / 价格异议</span><h1 style="font-size:21px;margin-top:12px">客户说“竞品更便宜”时，先谈什么？</h1><div class="sub">适用于价格敏感、仍有合作意愿的门店</div><section class="card" style="margin-top:18px;padding:16px"><div style="font-size:11px;font-weight:800;color:var(--warn);letter-spacing:.06em">问题</div><h3 style="font-size:16px;margin:8px 0 6px">客户只在比较单台进货价</h3><p style="font-size:12px;line-height:1.65;color:#666">直接降价会伤害价盘，也没有回应他对库存消化和后续跳价的担忧。</p></section><section class="card" style="margin-top:12px;padding:16px"><div style="font-size:11px;font-weight:800;color:var(--done);letter-spacing:.06em">解决方案</div><h3 style="font-size:16px;margin:8px 0 6px">从“低价”转为“稳定利润 + 共担动销”</h3><ol style="margin:8px 0 0 18px;color:#666;font-size:12px;line-height:1.8"><li>先确认库存与目标客群，避免盲目压货。</li><li>用稳定价盘解释单台利润，不只比较采购价。</li><li>给出小批试单和陪同消化库存的承诺。</li></ol></section><section class="card" style="margin-top:12px;padding:16px;background:#F4F5FF"><div style="font-size:11px;font-weight:800;color:var(--primary);letter-spacing:.06em">建议话术</div><p style="font-size:13px;line-height:1.7;color:#30365A;margin-top:8px">“我们先用一小批试单，我会和店员一起把库存消化掉；价格稳定，你不用担心后续跳价亏损。”</p></section><button class="cta" style="margin-top:18px" data-tab="stores">带着方案去看门店</button>`;
+    $("closeSheet").onclick=()=>{ $("sheet").classList.add("hidden"); $("sheet").innerHTML=""; };
+  }
+  if(a==="repair"){ revealOverlay(); $("overlay").innerHTML=`<div class="modal"><h3>报修与服务</h3><div class="hint">拍照或语音描述问题后，系统将生成售后协同事项并回写门店历史。</div><button class="receipt-shot" data-act="repairdone"><b>🔧</b>拍摄故障照片<small>用于生成本机演示报修草稿</small></button></div>`; return; }
+  if(a==="repairdone"){ closeOverlay(); S.tickets.unshift({id:"r"+Date.now(),type:"售后",store:"s3",title:"待确认的门店报修",owner:"售后协调员 Rosa",due:"09-23",status:"待处理",ev:"照片待同步"}); persist("报修草稿已创建，已进入协作待办"); renderMe(); return; }
+  if(a==="togglenet"){ S.offline=!S.offline; save(); toast(S.offline?"已切到弱网":"已切回在线"); showTab("me"); }
+  if(a==="online"){ S.offline=false; save(); showTab(document.querySelector(".tab.on").dataset.tab); }
+  if(a==="sync"){ const n=S.queue; S.queue=0; S.offline=false; save(); toast(n?`已同步 ${n} 条本地记录`:"没有待同步记录"); showTab(document.querySelector(".tab.on").dataset.tab); }
+  if(a==="reset"){ localStorage.removeItem(KEY); S=load(); toast("已恢复演示数据"); showTab("me"); }
+});
+if(S.visit&&S.visit.step===2){save();S.visit=freshVisit(1,"");save();}
+if(window.todoPreviewScene){resumeVisit("s2","stores",window.todoPreviewScene);showTab("visit");}else showTab("fight");
+resumeReports();
+</script>
+</body>
+</html>
