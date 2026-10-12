@@ -1533,7 +1533,7 @@ document.body.addEventListener("click",e=>{
   if(a==="make"){ completeVisit(); return; }
   if(a==="resetv"){ S.visit=freshVisit(1,""); save(); renderVisit(); return; }
   if(a==="new"){ e.stopPropagation(); requestAnimationFrame(()=>openNew()); return; }
-  if(a==="expense"){ e.stopPropagation(); requestAnimationFrame(()=>openExpense()); return; }
+  if(a==="expense"){ e.stopPropagation(); openExpense(); return; }
   if(a==="expenseretry"){retryReceipt();return;}
   if(a==="expenseresume"){resumeReceiptJob(el.dataset.job);return;}
   if(a==="expensecamera"){receiptCapture();return;}
@@ -1649,5 +1649,6 @@ resumeReports();
 </script>
 </body>
 </html>
+
 
 
